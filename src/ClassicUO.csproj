@@ -109,8 +109,10 @@
     <Compile Include="ECS\System.cs" />
     <Compile Include="Game\CircleOfTransparency.cs" />
     <Compile Include="Game\ComponentLookups.cs" />
+    <Compile Include="Game\Components\AlphaHueComponent.cs" />
     <Compile Include="Game\Components\GraphicComponent.cs" />
     <Compile Include="Game\Components\HueComponent.cs" />
+    <Compile Include="Game\Components\LastAccessTimeComponent.cs" />
     <Compile Include="Game\Components\PositionComponent.cs" />
     <Compile Include="Game\Components\PriorityZComponent.cs" />
     <Compile Include="Game\Components\RealScreenPositionComponent.cs" />
@@ -149,6 +151,7 @@
     <Compile Include="Game\Managers\HotkeysManager.cs" />
     <Compile Include="Game\Managers\MacroManager.cs" />
     <Compile Include="Game\Managers\AudioManager.cs" />
+    <Compile Include="Game\Components\TextureComponent.cs" />
     <Compile Include="Game\UI\AbstractEntry.cs" />
     <Compile Include="Game\UI\Controls\AbstractTextBox.cs" />
     <Compile Include="Game\UI\Controls\AlphaBlendControl.cs" />
@@ -604,6 +607,7 @@
     <Analyzer Include="..\packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\RuntimeContracts.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Game\Components\Mobile\" />
     <Folder Include="Game\Entities\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
