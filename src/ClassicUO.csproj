@@ -104,7 +104,18 @@
   <ItemGroup>
     <Compile Include="Configuration\Profile.cs" />
     <Compile Include="Configuration\ProfileManager.cs" />
+    <Compile Include="ECS\Component.cs" />
+    <Compile Include="ECS\Entity.cs" />
+    <Compile Include="ECS\System.cs" />
     <Compile Include="Game\CircleOfTransparency.cs" />
+    <Compile Include="Game\ComponentLookups.cs" />
+    <Compile Include="Game\Components\GraphicComponent.cs" />
+    <Compile Include="Game\Components\HueComponent.cs" />
+    <Compile Include="Game\Components\PositionComponent.cs" />
+    <Compile Include="Game\Components\PriorityZComponent.cs" />
+    <Compile Include="Game\Components\RealScreenPositionComponent.cs" />
+    <Compile Include="Game\Components\RenderIndexComponent.cs" />
+    <Compile Include="Game\Components\ScreenPositionComponent.cs" />
     <Compile Include="Game\Constants.cs" />
     <Compile Include="Game\Data\Ability.cs" />
     <Compile Include="Game\Data\BuffIcon.cs" />
@@ -130,6 +141,7 @@
     <Compile Include="Game\Data\SpellsNinjitsu.cs" />
     <Compile Include="Game\Data\SpellsSpellweaving.cs" />
     <Compile Include="Game\Data\StaticFilters.cs" />
+    <Compile Include="Game\GameEntity.cs" />
     <Compile Include="Game\GameObjects\Land.cs" />
     <Compile Include="Game\ItemHold.cs" />
     <Compile Include="Game\Managers\AnchorManager.cs" />
@@ -177,6 +189,7 @@
     <Compile Include="Game\UI\Gumps\UseAbilityButtonGump.cs" />
     <Compile Include="Game\UI\MultiLineEntry.cs" />
     <Compile Include="Game\GameObjects\Views\MultiView.cs" />
+    <Compile Include="Game\Systems\WorldSystem.cs" />
     <Compile Include="Input\Keyboard.cs" />
     <Compile Include="Interfaces\IPoolable.cs" />
     <Compile Include="IO\Audio\Sound.cs" />
@@ -337,8 +350,8 @@
     <Compile Include="Game\Data\SpellsMagery.cs" />
     <Compile Include="Game\GameActions.cs" />
     <Compile Include="Game\GameObjects\AnimatedItemEffect.cs" />
-    <Compile Include="Game\GameObjects\Entity.cs" />
-    <Compile Include="Game\GameObjects\EntityCollection.cs" />
+    <Compile Include="Game\GameObjects\ServerEntity.cs" />
+    <Compile Include="Game\GameObjects\ServerEntityCollection.cs" />
     <Compile Include="Game\GameObjects\GameEffect.cs" />
     <Compile Include="Game\GameObjects\GameObject.cs" />
     <Compile Include="Game\GameObjects\House.cs" />
@@ -589,6 +602,9 @@
     <Analyzer Include="..\packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.NET.Core.dll" />
     <Analyzer Include="..\packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\ErrorProne.Net.StructAnalyzers.dll" />
     <Analyzer Include="..\packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\RuntimeContracts.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Game\Entities\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
