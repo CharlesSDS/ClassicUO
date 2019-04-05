@@ -33,7 +33,7 @@ using ClassicUO.Utility.Platforms;
 
 namespace ClassicUO.Game.GameObjects
 {
-    internal partial class Item : Entity
+    internal partial class Item : ServerEntity
     {
         private ushort _amount;
         private Serial _container;

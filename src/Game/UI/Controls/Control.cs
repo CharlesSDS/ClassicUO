@@ -416,7 +416,7 @@ namespace ClassicUO.Game.UI.Controls
             }
         }
 
-	    public void SetTooltip(Entity entity)
+	    public void SetTooltip(ServerEntity entity)
 	    {
 		    ClearTooltip();
 

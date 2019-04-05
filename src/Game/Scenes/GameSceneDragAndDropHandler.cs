@@ -46,7 +46,7 @@ namespace ClassicUO.Game.Scenes
         public bool IsHoldingItem => HeldItem != null && HeldItem.Enabled;
 
 
-        public void MergeHeldItem(Entity entity)
+        public void MergeHeldItem(ServerEntity entity)
         {
             if (HeldItem.Enabled && HeldItem.Serial != entity)
             {
@@ -96,7 +96,7 @@ namespace ClassicUO.Game.Scenes
 
             if (!item.OnGround)
             {
-                Entity entity = World.Get(item.Container);
+                ServerEntity entity = World.Get(item.Container);
                 item.Container = Serial.INVALID;
                 entity.Items.Remove(item);
 

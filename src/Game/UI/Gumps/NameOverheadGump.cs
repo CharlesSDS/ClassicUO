@@ -29,7 +29,7 @@ namespace ClassicUO.Game.UI.Gumps
         private bool _isPressed = false;
         private float _clickTiming = 0;
 
-        public NameOverheadGump(Entity entity) : base(entity.Serial, 0)
+        public NameOverheadGump(ServerEntity entity) : base(entity.Serial, 0)
         {
             CanMove = false;
             AcceptMouseInput = true;
@@ -55,7 +55,7 @@ namespace ClassicUO.Game.UI.Gumps
             });
         }
 
-        public Entity Entity { get; }
+        public ServerEntity Entity { get; }
 
         private bool SetName()
         {

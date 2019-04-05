@@ -218,7 +218,7 @@ namespace ClassicUO.Game
 
         public static void TargetObject(Serial entity, Serial cursorID, byte cursorType)
         {
-            Entity e = World.Get(entity);
+            ServerEntity e = World.Get(entity);
             if (e == null)
                 return;
 

@@ -50,7 +50,7 @@ namespace ClassicUO.Game.GameObjects
         FastUnmountAndCantRun
     }
 
-    internal partial class Mobile : Entity
+    internal partial class Mobile : ServerEntity
     {
         private ushort _hits;
         private ushort _hitsMax;

@@ -44,7 +44,7 @@ namespace ClassicUO.Game.GameObjects
 
         public LightningEffect(Serial src, int x, int y, int z, Hue hue) : this(hue)
         {
-            Entity source = World.Get(src);
+            ServerEntity source = World.Get(src);
 
             if (source != null)
                 SetSource(source);

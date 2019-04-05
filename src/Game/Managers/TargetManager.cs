@@ -125,7 +125,7 @@ namespace ClassicUO.Game.Managers
             else if (selectedEntity is TextOverhead overhead && overhead.Parent != null)
                 selectedEntity = overhead.Parent;
 
-            if (selectedEntity is Entity entity)
+            if (selectedEntity is ServerEntity entity)
             {
                 if (selectedEntity != World.Player)
                 {

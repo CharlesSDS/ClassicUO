@@ -29,7 +29,7 @@ using ClassicUO.Utility;
 
 namespace ClassicUO.Game.GameObjects
 {
-    internal abstract class Entity : GameObject
+    internal abstract class ServerEntity : GameObject
     {
         private readonly ConcurrentDictionary<int, Property> _properties = new ConcurrentDictionary<int, Property>();
         protected Delta _delta;
@@ -39,15 +39,15 @@ namespace ClassicUO.Game.GameObjects
         private string _name;
         private Item[] _equipment;
 
-        protected Entity(Serial serial)
+        protected ServerEntity(Serial serial)
         {
             Serial = serial;
-            Items = new EntityCollection<Item>();
+            Items = new ServerEntityCollection<Item>();
         }
 
         protected long LastAnimationChangeTime { get; set; }
 
-        public EntityCollection<Item> Items { get; }
+        public ServerEntityCollection<Item> Items { get; }
 
         public bool HasEquipment => _equipment != null;
 
@@ -200,12 +200,12 @@ namespace ClassicUO.Game.GameObjects
         }
 
 
-        public static implicit operator Serial(Entity entity)
+        public static implicit operator Serial(ServerEntity entity)
         {
             return entity.Serial;
         }
 
-        public static implicit operator uint(Entity entity)
+        public static implicit operator uint(ServerEntity entity)
         {
             return entity.Serial;
         }

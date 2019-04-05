@@ -550,7 +550,7 @@ namespace ClassicUO.Game.Managers
 			                var entity = World.Get(Serial.Parse(gparams[1]));
 			                var lastControl = gump.Children.LastOrDefault();
 
-			                if (lastControl != default(Control) && entity != default(Entity))
+			                if (lastControl != default(Control) && entity != default(ServerEntity))
 				                lastControl.SetTooltip(entity);
 		                }
 

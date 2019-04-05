@@ -35,7 +35,7 @@ namespace ClassicUO.Game
     internal static class World
     {
         private static readonly EffectManager _effectManager = new EffectManager();
-        private static readonly List<Entity> _toRemove = new List<Entity>();
+        private static readonly List<ServerEntity> _toRemove = new List<ServerEntity>();
 
 
         public static CorpseManager CorpseManager { get; } = new CorpseManager();
@@ -44,9 +44,9 @@ namespace ClassicUO.Game
 
         public static HouseManager HouseManager { get; } = new HouseManager();
 
-        public static EntityCollection<Item> Items { get; } = new EntityCollection<Item>();
+        public static ServerEntityCollection<Item> Items { get; } = new ServerEntityCollection<Item>();
 
-        public static EntityCollection<Mobile> Mobiles { get; } = new EntityCollection<Mobile>();
+        public static ServerEntityCollection<Mobile> Mobiles { get; } = new ServerEntityCollection<Mobile>();
 
         public static PlayerMobile Player { get; set; }
 
@@ -186,7 +186,7 @@ namespace ClassicUO.Game
             return serial.IsMobile && Mobiles.Contains(serial);
         }
 
-        public static Entity Get(Serial serial)
+        public static ServerEntity Get(Serial serial)
         {
             if (serial.IsItem) return Items.Get(serial);
 
@@ -233,7 +233,7 @@ namespace ClassicUO.Game
 
             if (item.Layer != Layer.Invalid && item.RootContainer.IsValid)
             {
-                Entity e = Get(item.RootContainer);
+                ServerEntity e = Get(item.RootContainer);
                 if (e != null && e.HasEquipment)
                     e.Equipment[(int) item.Layer] = null;
             }

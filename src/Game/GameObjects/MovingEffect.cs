@@ -60,7 +60,7 @@ namespace ClassicUO.Game.GameObjects
 
             if (src.IsValid)
             {
-                Entity source = World.Get(src);
+                ServerEntity source = World.Get(src);
 
                 if (source is Mobile mobile)
                 {
@@ -86,7 +86,7 @@ namespace ClassicUO.Game.GameObjects
 
             if (trg.IsValid)
             {
-                Entity target = World.Get(trg);
+                ServerEntity target = World.Get(trg);
 
                 if (target is Mobile mobile)
                 {

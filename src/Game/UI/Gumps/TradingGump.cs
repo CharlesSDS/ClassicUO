@@ -37,7 +37,7 @@ namespace ClassicUO.Game.UI.Gumps
 
         private bool _imAccepting, _heIsAccepting;
 
-        private readonly Entity _entity1, _entity2;
+        private readonly ServerEntity _entity1, _entity2;
 
         private DataBox _myBox, _hisBox;
         private readonly string _name;

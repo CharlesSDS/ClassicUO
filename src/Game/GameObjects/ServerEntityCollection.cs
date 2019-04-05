@@ -29,7 +29,7 @@ using ClassicUO.Utility.Logging;
 
 namespace ClassicUO.Game.GameObjects
 {
-    internal class EntityCollection<T> : IEnumerable<T> where T : Entity
+    internal class ServerEntityCollection<T> : IEnumerable<T> where T : ServerEntity
     {
         private readonly List<T> _added = new List<T>(), _removed = new List<T>();
         private readonly Dictionary<Serial, T> _entities = new Dictionary<Serial, T>();

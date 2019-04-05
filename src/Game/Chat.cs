@@ -86,11 +86,11 @@ namespace ClassicUO.Game
         public static event EventHandler<UOMessageEventArgs> LocalizedMessage;
 
         public static void Print(string message, ushort hue = defaultHue, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal, bool unicode = true) => Print(_system, message, hue, type, font, unicode);
-        public static void Print(this Entity entity, string message, ushort hue = defaultHue, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal, bool unicode = true) => OnMessage(entity, message, entity.Name, hue, type, font, unicode, "ENU");
+        public static void Print(this ServerEntity entity, string message, ushort hue = defaultHue, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal, bool unicode = true) => OnMessage(entity, message, entity.Name, hue, type, font, unicode, "ENU");
 
         public static void Say(string message, ushort hue = defaultHue, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal) => GameActions.Say(message, hue, type, font);
     
-        public static void OnMessage(Entity parent, string text, string name, Hue hue, MessageType type, MessageFont font, bool unicode = false, string lang = null)
+        public static void OnMessage(ServerEntity parent, string text, string name, Hue hue, MessageType type, MessageFont font, bool unicode = false, string lang = null)
         {
 			switch (type)
 			{
@@ -122,7 +122,7 @@ namespace ClassicUO.Game
 			Message.Raise(new UOMessageEventArgs(parent, text, name, hue, type, font, unicode, lang), parent ?? _system);
 		}
 
-		public static void OnLocalizedMessage(Entity entity, UOMessageEventArgs args)
+		public static void OnLocalizedMessage(ServerEntity entity, UOMessageEventArgs args)
         {
             LocalizedMessage.Raise(args, entity ?? _system);
         }
@@ -131,7 +131,7 @@ namespace ClassicUO.Game
 
 	internal class UOMessageEventArgs : EventArgs
     {
-        public UOMessageEventArgs(Entity parent, string text, string name, Hue hue, MessageType type, MessageFont font, bool unicode = false, string lang = null)
+        public UOMessageEventArgs(ServerEntity parent, string text, string name, Hue hue, MessageType type, MessageFont font, bool unicode = false, string lang = null)
         {
             Parent = parent;
             Text = text;
@@ -144,7 +144,7 @@ namespace ClassicUO.Game
             IsUnicode = unicode;
         }
 
-        public UOMessageEventArgs(Entity parent, string text, Hue hue, MessageType type, MessageFont font, uint cliloc, bool unicode = false, AffixType affixType = AffixType.None, string affix = null)
+        public UOMessageEventArgs(ServerEntity parent, string text, Hue hue, MessageType type, MessageFont font, uint cliloc, bool unicode = false, AffixType affixType = AffixType.None, string affix = null)
         {
             Parent = parent;
             Text = text;
@@ -157,7 +157,7 @@ namespace ClassicUO.Game
             IsUnicode = unicode;
         }
 
-        public Entity Parent { get; }
+        public ServerEntity Parent { get; }
 
         public string Text { get; }
 

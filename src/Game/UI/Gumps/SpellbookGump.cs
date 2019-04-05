@@ -694,7 +694,7 @@ namespace ClassicUO.Game.UI.Gumps
             }
         }
 
-        private void OnEntityUpdate(Entity entity)
+        private void OnEntityUpdate(ServerEntity entity)
         {
             switch (entity.Graphic)
             {

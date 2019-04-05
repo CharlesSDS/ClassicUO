@@ -37,7 +37,7 @@ namespace ClassicUO.Game.UI
 {
     internal class Tooltip 
     {
-        private Entity _gameObject;
+        private ServerEntity _gameObject;
         private uint _hash;
         private RenderedText _renderedText;
         private string _textHTML;
@@ -129,7 +129,7 @@ namespace ClassicUO.Game.UI
             _maxWidth = 0;
         }
 
-        public void SetGameObject(Entity obj)
+        public void SetGameObject(ServerEntity obj)
         {
             if (_gameObject == null || obj != _gameObject || obj.PropertiesHash != _gameObject.PropertiesHash)
             {
@@ -142,7 +142,7 @@ namespace ClassicUO.Game.UI
         }
 
        
-        private string ReadProperties(Entity obj, out string htmltext)
+        private string ReadProperties(ServerEntity obj, out string htmltext)
         {
             _sb.Clear();
             _sbHTML.Clear();

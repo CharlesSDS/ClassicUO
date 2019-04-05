@@ -604,7 +604,7 @@ namespace ClassicUO.Network
         private static void Talk(Packet p)
         {
             Serial serial = p.ReadUInt();
-            Entity entity = World.Get(serial);
+            ServerEntity entity = World.Get(serial);
             ushort graphic = p.ReadUShort();
             MessageType type = (MessageType)p.ReadByte();
             Hue hue = p.ReadUShort();
@@ -775,7 +775,7 @@ namespace ClassicUO.Network
             else if (graphic == 0x0EEA)
                 graphic = 0x0EEC;
             else if (graphic == 0x0EF0) graphic = 0x0EF2;
-            Entity entity = World.Get(source);
+            ServerEntity entity = World.Get(source);
 
             if (entity == null)
                 source = 0;
@@ -786,7 +786,7 @@ namespace ClassicUO.Network
                 sourceZ = entity.Position.Z;
             }
 
-            Entity destEntity = World.Get(dest);
+            ServerEntity destEntity = World.Get(dest);
 
             if (destEntity == null)
                 dest = 0;
@@ -938,7 +938,7 @@ namespace ClassicUO.Network
             {
                 if (hold.Layer == Layer.Invalid && hold.Container.IsValid)
                 {
-                    Entity container = World.Get(hold.Container);
+                    ServerEntity container = World.Get(hold.Container);
 
                     if (container != null)
                     {
@@ -975,7 +975,7 @@ namespace ClassicUO.Network
 
                         if (!hold.OnGround)
                         {
-                            Entity container = World.Get(item.Container);
+                            ServerEntity container = World.Get(item.Container);
 
                             if (container != null)
                             {
@@ -1098,7 +1098,7 @@ namespace ClassicUO.Network
 
             if (item.Container != 0)
             {
-                Entity cont = World.Get(item.Container);
+                ServerEntity cont = World.Get(item.Container);
                 cont.Items.Remove(item);
                 cont.Items.ProcessDelta();
                 item.Container = Serial.INVALID;
@@ -1208,7 +1208,7 @@ namespace ClassicUO.Network
 
             ushort count = p.ReadUShort();
 
-            Entity container = null;
+            ServerEntity container = null;
 
             for (int i = 0; i < count; i++)
             {
@@ -1943,7 +1943,7 @@ namespace ClassicUO.Network
             if (!World.InGame)
                 return;
 
-            Entity corpse = World.Get(p.ReadUInt());
+            ServerEntity corpse = World.Get(p.ReadUInt());
             Layer layer = (Layer)p.ReadByte();
 
             while (layer != Layer.Invalid && p.Position < p.Length)
@@ -2284,7 +2284,7 @@ namespace ClassicUO.Network
             }
 
             Serial serial = p.ReadUInt();
-            Entity entity = World.Get(serial);
+            ServerEntity entity = World.Get(serial);
             ushort graphic = p.ReadUShort();
             MessageType type = (MessageType)p.ReadByte();
             Hue hue = p.ReadUShort();
@@ -2800,7 +2800,7 @@ namespace ClassicUO.Network
             if (World.Player == null)
                 return;
             Serial serial = p.ReadUInt();
-            Entity entity = World.Get(serial);
+            ServerEntity entity = World.Get(serial);
             ushort graphic = p.ReadUShort();
             MessageType type = (MessageType)p.ReadByte();
             Hue hue = p.ReadUShort();
@@ -2898,7 +2898,7 @@ namespace ClassicUO.Network
             p.Skip(2);
             uint revision = p.ReadUInt();
 
-            Entity entity = World.Mobiles.Get(serial);
+            ServerEntity entity = World.Mobiles.Get(serial);
 
             if (entity == null)
             {
@@ -3101,7 +3101,7 @@ namespace ClassicUO.Network
             {
                 Serial serial = p.ReadUInt();
                 uint revision = p.ReadUInt();
-                Entity entity = World.Get(serial);
+                ServerEntity entity = World.Get(serial);
                 if (entity != null && entity.PropertiesHash != revision)
                     NetClient.Socket.Send(new PMegaClilocRequest(entity));
             }
@@ -3328,7 +3328,7 @@ namespace ClassicUO.Network
                 ushort cy = p.ReadUShort();
                 ushort cz = p.ReadUShort();
 
-                Entity entity = World.Get(cSerial);
+                ServerEntity entity = World.Get(cSerial);
 
                 if (entity != null)
                 {
@@ -3351,7 +3351,7 @@ namespace ClassicUO.Network
             if (gs != null && gs.HeldItem.Serial == serial && (gs.HeldItem.Dropped || gs.HeldItem.Enabled))
                 gs.HeldItem.Clear();
 
-            Entity container = World.Get(containerSerial);
+            ServerEntity container = World.Get(containerSerial);
 
             if (container == null)
             {
@@ -3370,7 +3370,7 @@ namespace ClassicUO.Network
 
             if (item != null && (container.Graphic != 0x2006 || item.Layer == Layer.Invalid))
             {
-                Entity initcontainer = World.Get(item.Container);
+                ServerEntity initcontainer = World.Get(item.Container);
 
                 if (initcontainer != null)
                 {

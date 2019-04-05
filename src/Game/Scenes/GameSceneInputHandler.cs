@@ -50,7 +50,7 @@ namespace ClassicUO.Game.Scenes
         private double _dequeueAt;
         private bool _inqueue;
         private Action _queuedAction;
-        private Entity _queuedObject;
+        private ServerEntity _queuedObject;
         private bool _rightMousePressed, _continueRunning, _useObjectHandles;
 
         private readonly Dictionary<SDL.SDL_Keycode, Direction> _keycodeDirection = new Dictionary<SDL.SDL_Keycode, Direction>()
@@ -229,7 +229,7 @@ namespace ClassicUO.Game.Scenes
                                 obj.AddOverhead(MessageType.Label, name, 3, 0, false);
                             break;
 
-                        case Entity entity:
+                        case ServerEntity entity:
                             if (!_inqueue)
                             {
                                 _inqueue = true;
@@ -280,7 +280,7 @@ namespace ClassicUO.Game.Scenes
                         GameActions.DoubleClick(item);
                         break;
 
-                    case TextOverhead overhead when overhead.Parent is Entity entity:
+                    case TextOverhead overhead when overhead.Parent is ServerEntity entity:
                         e.Result = true;
                         GameActions.DoubleClick(entity);
                         break;

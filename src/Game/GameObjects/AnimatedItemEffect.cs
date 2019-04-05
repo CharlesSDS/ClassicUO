@@ -48,7 +48,7 @@ namespace ClassicUO.Game.GameObjects
         public AnimatedItemEffect(Serial sourceSerial, int sourceX, int sourceY, int sourceZ, Graphic graphic, Hue hue, int duration) : this(graphic, hue, duration)
         {
             sbyte zSrc = (sbyte) sourceZ;
-            Entity source = World.Get(sourceSerial);
+            ServerEntity source = World.Get(sourceSerial);
 
             if (source != null)
             {
