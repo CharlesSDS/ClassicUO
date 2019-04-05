@@ -110,14 +110,22 @@
     <Compile Include="Game\CircleOfTransparency.cs" />
     <Compile Include="Game\ComponentLookups.cs" />
     <Compile Include="Game\Components\AlphaHueComponent.cs" />
+    <Compile Include="Game\Components\Chunk\ChunkComponent.cs" />
+    <Compile Include="Game\Components\Chunk\TilesComponent.cs" />
+    <Compile Include="Game\Components\DrawComponent.cs" />
     <Compile Include="Game\Components\GraphicComponent.cs" />
     <Compile Include="Game\Components\HueComponent.cs" />
-    <Compile Include="Game\Components\LastAccessTimeComponent.cs" />
+    <Compile Include="Game\Components\Chunk\LastAccessTimeComponent.cs" />
+    <Compile Include="Game\Components\Land\HeightComponent.cs" />
+    <Compile Include="Game\Components\Land\LandComponent.cs" />
+    <Compile Include="Game\Components\NameComponent.cs" />
     <Compile Include="Game\Components\PositionComponent.cs" />
     <Compile Include="Game\Components\PriorityZComponent.cs" />
     <Compile Include="Game\Components\RealScreenPositionComponent.cs" />
     <Compile Include="Game\Components\RenderIndexComponent.cs" />
     <Compile Include="Game\Components\ScreenPositionComponent.cs" />
+    <Compile Include="Game\Components\SelectedComponent.cs" />
+    <Compile Include="Game\Components\VerticesComponent.cs" />
     <Compile Include="Game\Constants.cs" />
     <Compile Include="Game\Data\Ability.cs" />
     <Compile Include="Game\Data\BuffIcon.cs" />
@@ -607,8 +615,11 @@
     <Analyzer Include="..\packages\ErrorProne.NET.Structs.0.1.2\analyzers\dotnet\cs\RuntimeContracts.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Game\Components\Map\" />
     <Folder Include="Game\Components\Mobile\" />
-    <Folder Include="Game\Entities\" />
+    <Folder Include="Game\Components\Player\" />
+    <Folder Include="Game\Components\Tile\" />
+    <Folder Include="Game\Components\World\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
