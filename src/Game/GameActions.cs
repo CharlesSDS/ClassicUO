@@ -117,7 +117,7 @@ namespace ClassicUO.Game
         public static void Print(string message, ushort hue = 946, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal, bool unicode = true)
             => Print(null, message, hue, type, font, unicode);
 
-        public static void Print(Entity entity, string message, ushort hue = 946, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal, bool unicode = true)
+        public static void Print(ServerEntity entity, string message, ushort hue = 946, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal, bool unicode = true)
             => Chat.HandleMessage(entity, message, entity != null ? entity.Name : "System", hue, type, font, unicode, "ENU");
 
         public static void SayParty(string message)

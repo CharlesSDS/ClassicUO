@@ -29,6 +29,8 @@ using ClassicUO.Game.UI.Gumps;
 using ClassicUO.Utility;
 using ClassicUO.Utility.Logging;
 
+using CUO_APINetPipes;
+
 namespace ClassicUO.Game
 {
     [Flags]
@@ -85,7 +87,7 @@ namespace ClassicUO.Game
 
      
     
-        public static void HandleMessage(Entity parent, string text, string name, Hue hue, MessageType type, MessageFont font, bool unicode = false, string lang = null)
+        public static void HandleMessage(ServerEntity parent, string text, string name, Hue hue, MessageType type, MessageFont font, bool unicode = false, string lang = null)
         {
 			switch (type)
 			{
@@ -129,7 +131,7 @@ namespace ClassicUO.Game
                         else
                         {
 
-                            Entity ent = World.Get(it.RootContainer);
+                            ServerEntity ent = World.Get(it.RootContainer);
 
                             gump = Engine.UI.GetByLocalSerial<TradingGump>(ent);
                             if (gump != null)
