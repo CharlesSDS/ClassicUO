@@ -39,7 +39,7 @@ namespace ClassicUO.Game.UI.Gumps
     {
         // general
         private HSliderBar _sliderFPS, _sliderFPSLogin, _circleOfTranspRadius;
-        private Checkbox _highlightObjects, /*_smoothMovements,*/ _enablePathfind, _alwaysRun, _preloadMaps, _showHpMobile, _highlightByState, _drawRoofs, _treeToStumps, _hideVegetation, _noColorOutOfRangeObjects, _useCircleOfTransparency, _enableTopbar, _holdDownKeyTab, _holdDownKeyAlt, _enableCaveBorder;
+        private Checkbox _highlightObjects, /*_smoothMovements,*/ _enablePathfind, _alwaysRun, _preloadMaps, _showHpMobile, _highlightByState, _drawRoofs, _treeToStumps, _hideVegetation, _noColorOutOfRangeObjects, _useCircleOfTransparency, _enableTopbar, _holdDownKeyTab, _holdDownKeyAlt, _chatAfterEnter, _chatIgnodeHotkeysCheckbox, _chatIgnodeHotkeysPluginsCheckbox, _chatAdditionalButtonsCheckbox, _chatShiftEnterCheckbox, _chatCompletelyHideCheckbox, _enableCaveBorder;
         private Combobox _hpComboBox, _healtbarType;
         private RadioButton _fieldsToTile, _staticFields, _normalFields;
 
@@ -76,17 +76,20 @@ namespace ClassicUO.Game.UI.Gumps
 
         //counters
         private Checkbox _enableCounters, _highlightOnUse;
-        private Combobox _counterLayout;
+        //private Combobox _counterLayout;
+        private HSliderBar _cellSize;
+        private TextBox _rows, _columns;
 
 
         private const byte FONT = 0xFF;
         private const ushort HUE_FONT = 999;
 
-        const int WIDTH = 700;
-        const int HEIGHT = 500;
+        private const int WIDTH = 700;
+        private const int HEIGHT = 500;
 
         private ScrollAreaItem _windowSizeArea;
         private ScrollAreaItem _zoomSizeArea;
+        private ScrollAreaItem _activeChatArea;
 
         public OptionsGump() : base(0, 0)
         {
@@ -199,7 +202,7 @@ namespace ClassicUO.Game.UI.Gumps
             _enableTopbar = CreateCheckBox(rightArea, "Disable the Menu Bar", Engine.Profile.Current.TopbarGumpIsDisabled, 0, 0);
             _holdDownKeyTab = CreateCheckBox(rightArea, "Hold TAB key for combat", Engine.Profile.Current.HoldDownKeyTab, 0, 0);
             _holdDownKeyAlt = CreateCheckBox(rightArea, "Hold ALT key + right click to close Anchored gumps", Engine.Profile.Current.HoldDownKeyAltToCloseAnchored, 0, 0);
-
+            
             ScrollAreaItem hpAreaItem = new ScrollAreaItem();
             _showHpMobile = new Checkbox(0x00D2, 0x00D3, "Show HP", FONT, HUE_FONT, true)
             {
@@ -374,7 +377,6 @@ namespace ClassicUO.Game.UI.Gumps
             const int PAGE = 3;
 
             ScrollArea rightArea = new ScrollArea(190, 20, WIDTH - 210, 420, true);
-            ScrollAreaItem item;
             Label text;
 
             // [BLOCK] game size
@@ -408,7 +410,7 @@ namespace ClassicUO.Game.UI.Gumps
                 };
                 _windowSizeArea.Add(text);
 
-                _gameWindowWidth = CreateInputField(_windowSizeArea, new TextBox(1, 5, 80, 80, false)
+                _gameWindowWidth = CreateInputField(_windowSizeArea, new TextBox(FONT, 5, 80, 80)
                 {
                     Text = Engine.Profile.Current.GameWindowSize.X.ToString(),
                     X = 30,
@@ -417,7 +419,7 @@ namespace ClassicUO.Game.UI.Gumps
                     Height = 30,
                     UNumericOnly = true
                 }, "");
-                _gameWindowHeight = CreateInputField(_windowSizeArea, new TextBox(1, 5, 80, 80, false)
+                _gameWindowHeight = CreateInputField(_windowSizeArea, new TextBox(FONT, 5, 80, 80)
                 {
                     Text = Engine.Profile.Current.GameWindowSize.Y.ToString(),
                     X = 100,
@@ -434,7 +436,7 @@ namespace ClassicUO.Game.UI.Gumps
                 };
                 _windowSizeArea.Add(text);
 
-                _gameWindowPositionX = CreateInputField(_windowSizeArea, new TextBox(1, 5, 80, 80, false)
+                _gameWindowPositionX = CreateInputField(_windowSizeArea, new TextBox(FONT, 5, 80, 80)
                 {
                     Text = Engine.Profile.Current.GameWindowPosition.X.ToString(),
                     X = 215,
@@ -443,7 +445,7 @@ namespace ClassicUO.Game.UI.Gumps
                     Height = 30,
                     NumericOnly = true
                 });
-                _gameWindowPositionY = CreateInputField(_windowSizeArea, new TextBox(1, 5, 80, 80, false)
+                _gameWindowPositionY = CreateInputField(_windowSizeArea, new TextBox(FONT, 5, 80, 80)
                 {
                     Text = Engine.Profile.Current.GameWindowPosition.Y.ToString(),
                     X = 285,
@@ -497,7 +499,7 @@ namespace ClassicUO.Game.UI.Gumps
             _enableDeathScreen = CreateCheckBox(rightArea, "Enable Death Screen", Engine.Profile.Current.EnableDeathScreen, 0, 0);
             _enableBlackWhiteEffect = CreateCheckBox(rightArea, "Black & White mode for dead player", Engine.Profile.Current.EnableBlackWhiteEffect, 0, 0);
 
-            item = new ScrollAreaItem();
+            ScrollAreaItem item = new ScrollAreaItem();
             text = new Label("- Status gump type:", true, HUE_FONT, 0, FONT)
             {
                 Y = 30
@@ -552,7 +554,7 @@ namespace ClassicUO.Game.UI.Gumps
                     NiceButton nb;
                     rightArea.Add(nb = new NiceButton(0, 0, 130, 25, ButtonAction.Activate, name)
                     {
-                        ButtonParameter = (int) Buttons.Last + 1 + rightArea.Children.Count,
+                        ButtonParameter = (int)Buttons.Last + 1 + rightArea.Children.Count,
                     });
 
                     nb.IsSelected = true;
@@ -577,9 +579,10 @@ namespace ClassicUO.Game.UI.Gumps
                         };
                         Add(_macroControl, PAGE);
                     };
-                });
-
-                dialog.CanCloseWithRightClick = true;
+                })
+                {
+                    CanCloseWithRightClick = true
+                };
                 Engine.UI.Add(dialog);
             };
 
@@ -677,22 +680,88 @@ namespace ClassicUO.Game.UI.Gumps
         {
             const int PAGE = 7;
             ScrollArea rightArea = new ScrollArea(190, 20, WIDTH - 210, 420, true);
-            ScrollAreaItem item = new ScrollAreaItem();
 
             _scaleSpeechDelay = new Checkbox(0x00D2, 0x00D3, "Scale speech delay by length", FONT, HUE_FONT, true)
             {
                 IsChecked = Engine.Profile.Current.ScaleSpeechDelay
             };
-            item.Add(_scaleSpeechDelay);
-            rightArea.Add(item);
-            item = new ScrollAreaItem();
-            Label text = new Label("- Speech delay:", true, HUE_FONT, font: FONT);
-            item.Add(text);
-            _sliderSpeechDelay = new HSliderBar(100, 5, 300, 1, 1000, Engine.Profile.Current.SpeechDelay, HSliderBarStyle.MetalWidgetRecessedBar, true, FONT, HUE_FONT, true);
-            item.Add(_sliderSpeechDelay);
-            rightArea.Add(item);
+            _scaleSpeechDelay.ValueChanged += (sender, e) => { _sliderSpeechDelay.IsVisible = !_sliderSpeechDelay.IsVisible; };
+            rightArea.Add(_scaleSpeechDelay);
 
-            _speechColorPickerBox = CreateClickableColorBox(rightArea, 0, 30, Engine.Profile.Current.SpeechHue, "Speech Color", 20, 30);
+          
+            _sliderSpeechDelay = new HSliderBar(0, 0, 300, 1, 1000, Engine.Profile.Current.SpeechDelay, HSliderBarStyle.MetalWidgetRecessedBar, true, FONT, HUE_FONT, true);
+            rightArea.Add(_sliderSpeechDelay);
+
+            // [BLOCK] activate chat
+            {
+                _chatAfterEnter = new Checkbox(0x00D2, 0x00D3, "Activate chat after `Enter` pressing", FONT, HUE_FONT, true)
+                {
+                    Y = 15,
+                    IsChecked = Engine.Profile.Current.ActivateChatAfterEnter
+                };
+                _chatAfterEnter.ValueChanged += (sender, e) =>
+                {
+                    _activeChatArea.IsVisible = _chatAfterEnter.IsChecked;
+                };
+
+                rightArea.Add(_chatAfterEnter);
+
+                _activeChatArea = new ScrollAreaItem();
+
+                _chatAdditionalButtonsCheckbox = new Checkbox(0x00D2, 0x00D3, "Additional buttons activate chat: ! ; : ? / \\ , . [ | -", FONT, HUE_FONT, true)
+                {
+                    X = 20,
+                    Y = 15,
+                    IsChecked = Engine.Profile.Current.ActivateChatAdditionalButtons
+                };
+                _activeChatArea.Add(_chatAdditionalButtonsCheckbox);
+
+                _chatShiftEnterCheckbox = new Checkbox(0x00D2, 0x00D3, "Shift+Enter send message without closing chat", FONT, HUE_FONT, true)
+                {
+                    X = 20,
+                    Y = 35,
+                    IsChecked = Engine.Profile.Current.ActivateChatShiftEnterSupport
+                };
+                _activeChatArea.Add(_chatShiftEnterCheckbox);
+
+                _chatCompletelyHideCheckbox = new Checkbox(0x00D2, 0x00D3, "Fully hide chat", FONT, HUE_FONT, true)
+                {
+                    X = 20,
+                    Y = 55,
+                    IsChecked = Engine.Profile.Current.ActivateChatCompletelyHide
+                };
+                _activeChatArea.Add(_chatCompletelyHideCheckbox);
+
+                var text = new Label("If chat active - ignores hotkeys from:", true, HUE_FONT, 0, FONT)
+                {
+                    X = 20,
+                    Y = 80,
+                };
+
+                _activeChatArea.Add(text);
+
+                _chatIgnodeHotkeysCheckbox = new Checkbox(0x00D2, 0x00D3, "Client (macro system)", FONT, HUE_FONT, true)
+                {
+                    X = 40,
+                    Y = 105,
+                    IsChecked = Engine.Profile.Current.ActivateChatIgnoreHotkeys
+                };
+                _activeChatArea.Add(_chatIgnodeHotkeysCheckbox);
+
+                _chatIgnodeHotkeysPluginsCheckbox = new Checkbox(0x00D2, 0x00D3, "Plugins (Razor)", FONT, HUE_FONT, true)
+                {
+                    X = 40,
+                    Y = 125,
+                    IsChecked = Engine.Profile.Current.ActivateChatIgnoreHotkeysPlugins
+                };
+                _activeChatArea.Add(_chatIgnodeHotkeysPluginsCheckbox);
+
+                rightArea.Add(_activeChatArea);
+
+                _activeChatArea.IsVisible = _chatAfterEnter.IsChecked;
+            }
+
+            _speechColorPickerBox = CreateClickableColorBox(rightArea, 0, 20, Engine.Profile.Current.SpeechHue, "Speech Color", 20, 20);
             _emoteColorPickerBox = CreateClickableColorBox(rightArea, 0, 0, Engine.Profile.Current.EmoteHue, "Emote Color", 20, 0);
             _partyMessageColorPickerBox = CreateClickableColorBox(rightArea, 0, 0, Engine.Profile.Current.PartyMessageHue, "Party Message Color", 20, 0);
             _guildMessageColorPickerBox = CreateClickableColorBox(rightArea, 0, 0, Engine.Profile.Current.GuildMessageHue, "Guild Message Color", 20, 0);
@@ -722,33 +791,56 @@ namespace ClassicUO.Game.UI.Gumps
             const int PAGE = 9;
             ScrollArea rightArea = new ScrollArea(190, 20, WIDTH - 210, 420, true);
 
-            _enableCounters = CreateCheckBox(rightArea, "Enable Counters", true, 0, 0);
-            _highlightOnUse = CreateCheckBox(rightArea, "Highlight On Use", true, 0, 0);
+            _enableCounters = CreateCheckBox(rightArea, "Enable Counters [if disabled you lose all counters inside]", Engine.Profile.Current.CounterBarEnabled, 0, 0);
+            _highlightOnUse = CreateCheckBox(rightArea, "Highlight On Use", Engine.Profile.Current.CounterBarHighlightOnUse, 0, 0);
 
             
-            ScrollAreaItem layoutArea = new ScrollAreaItem();
+            ScrollAreaItem item = new ScrollAreaItem();
             Label text = new Label("Counter Layout:", true, HUE_FONT, font: FONT)
             {
                 Y = _highlightOnUse.Bounds.Bottom + 5,
             };
-                        layoutArea.Add(text);
-            _counterLayout = new Combobox(text.Bounds.Right + 10, _highlightOnUse.Bounds.Bottom + 5, 150, new[]
-                {
-                    "Horizontal", "Vertical"
-            });
-            layoutArea.Add(_counterLayout);
+            item.Add(text);
+            //_counterLayout = new Combobox(text.Bounds.Right + 10, _highlightOnUse.Bounds.Bottom + 5, 150, new[] { "Horizontal", "Vertical" }, Engine.Profile.Current.CounterBarIsVertical ? 1 : 0);
+            //item.Add(_counterLayout);
+            rightArea.Add(item);
 
-            NiceButton addButton = new NiceButton(190, 125, 130, 20, ButtonAction.Activate, "Add Counter") { IsSelectable = false, ButtonParameter = 1 };
-            Add(addButton, PAGE);
 
-            text = new Label("Active Counters:", true, HUE_FONT, font: FONT)
+            item = new ScrollAreaItem();
+            text = new Label("Cell size:", true, HUE_FONT, font: FONT)
             {
-                Y = layoutArea.Bounds.Bottom + 50
+                X = 10,
+                Y = 10
             };
+            item.Add(text);
 
+            _cellSize = new HSliderBar(text.X + text.Width + 10, text.Y + 5, 80, 30, 80, Engine.Profile.Current.CounterBarCellSize, HSliderBarStyle.MetalWidgetRecessedBar, true, FONT, HUE_FONT, true);
+            item.Add(_cellSize);
+            rightArea.Add(item);
 
-            rightArea.Add(layoutArea);
-            rightArea.Add(text);
+            item = new ScrollAreaItem();
+            _rows = CreateInputField(item, new TextBox(FONT, 5, 80, 80, true)
+            {
+                X = 20,
+                Y = _cellSize.Y + _cellSize.Height + 25,
+                Width = 50,
+                Height = 30,
+                NumericOnly = true,
+                Text = Engine.Profile.Current.CounterBarRows.ToString(),
+            }, "Rows:");
+
+            _columns = CreateInputField(item, new TextBox(FONT, 5, 80, 80, true)
+            {
+                X = _rows.X + _rows.Width + 30,
+                Y = _cellSize.Y + _cellSize.Height + 25,
+                Width = 50,
+                Height = 30,
+                NumericOnly = true,
+                Text = Engine.Profile.Current.CounterBarColumns.ToString(),
+            }, "Columns:");
+
+            rightArea.Add(item);
+
             Add(rightArea, PAGE);
         }
 
@@ -810,8 +902,9 @@ namespace ClassicUO.Game.UI.Gumps
                     _enableTopbar.IsChecked = false;
                     _holdDownKeyTab.IsChecked = true;
                     _holdDownKeyAlt.IsChecked = true;
+
                     //_smoothMovements.IsChecked = true;
-                    _enablePathfind.IsChecked = true;
+                    _enablePathfind.IsChecked = false;
                     _alwaysRun.IsChecked = false;
                     _showHpMobile.IsChecked = false;
                     _hpComboBox.SelectedIndex = 0;
@@ -860,7 +953,10 @@ namespace ClassicUO.Game.UI.Gumps
                     Engine.Profile.Current.RestoreScaleValue = Engine.Profile.Current.ScaleZoom = 1f;
                     _lightBar.Value = 0;
                     _enableLight.IsChecked = false;
+
                     _windowSizeArea.IsVisible = (!_gameWindowFullsize.IsChecked);
+                    _zoomSizeArea.IsVisible = (_zoomCheckbox.IsChecked);
+
                     break;
                 case 4: // commands
 
@@ -880,6 +976,21 @@ namespace ClassicUO.Game.UI.Gumps
                     _partyMessageColorPickerBox.SetColor(0x0044, FileManager.Hues.GetPolygoneColor(12, 0x0044));
                     _guildMessageColorPickerBox.SetColor(0x0044, FileManager.Hues.GetPolygoneColor(12, 0x0044));
                     _allyMessageColorPickerBox.SetColor(0x0057, FileManager.Hues.GetPolygoneColor(12, 0x0057));
+
+                    _chatAfterEnter.IsChecked = false;
+
+                    WorldViewportGump vp = Engine.UI.GetByLocalSerial<WorldViewportGump>();
+                    SystemChatControl systemchat = vp?.FindControls<SystemChatControl>().SingleOrDefault();
+                    if (systemchat != null)
+                        systemchat.ChatVisibility = !_chatAfterEnter.IsChecked;
+
+                    _chatIgnodeHotkeysCheckbox.IsChecked = true;
+                    _chatIgnodeHotkeysPluginsCheckbox.IsChecked = true;
+                    _chatAdditionalButtonsCheckbox.IsChecked = true;
+                    _chatShiftEnterCheckbox.IsChecked = true;
+                    _chatCompletelyHideCheckbox.IsChecked = false;
+                    _activeChatArea.IsVisible = (_chatAfterEnter.IsChecked);
+
                     break;
                 case 8: // combat
                     _innocentColorPickerBox.SetColor(0x005A, FileManager.Hues.GetPolygoneColor(12, 0x005A));
@@ -889,6 +1000,13 @@ namespace ClassicUO.Game.UI.Gumps
                     _murdererColorPickerBox.SetColor(0x0023, FileManager.Hues.GetPolygoneColor(12, 0x0023));
                     _enemyColorPickerBox.SetColor(0x0031, FileManager.Hues.GetPolygoneColor(12, 0x0031));
                     _queryBeforAttackCheckbox.IsChecked = true;
+                    break;
+                case 9:
+                    _enableCounters.IsChecked = false;
+                    _highlightOnUse.IsChecked = false;
+                    _columns.Text = "1";
+                    _rows.Text = "1";
+                    _cellSize.Value = 40;
                     break;
             }
         }
@@ -961,6 +1079,21 @@ namespace ClassicUO.Game.UI.Gumps
             Engine.Profile.Current.GuildMessageHue = _guildMessageColorPickerBox.Hue;
             Engine.Profile.Current.AllyMessageHue = _allyMessageColorPickerBox.Hue;
 
+            if (Engine.Profile.Current.ActivateChatAfterEnter != _chatAfterEnter.IsChecked)
+            {
+                SystemChatControl systemchat = vp?.FindControls<SystemChatControl>().SingleOrDefault();
+                if (systemchat != null)
+                    systemchat.ChatVisibility = !_chatAfterEnter.IsChecked;
+
+                Engine.Profile.Current.ActivateChatAfterEnter = _chatAfterEnter.IsChecked;
+            }
+
+            Engine.Profile.Current.ActivateChatIgnoreHotkeys = _chatIgnodeHotkeysCheckbox.IsChecked;
+            Engine.Profile.Current.ActivateChatIgnoreHotkeysPlugins = _chatIgnodeHotkeysPluginsCheckbox.IsChecked;
+            Engine.Profile.Current.ActivateChatAdditionalButtons = _chatAdditionalButtonsCheckbox.IsChecked;
+            Engine.Profile.Current.ActivateChatShiftEnterSupport = _chatShiftEnterCheckbox.IsChecked;
+            Engine.Profile.Current.ActivateChatCompletelyHide = _chatCompletelyHideCheckbox.IsChecked;
+
             // video
             Engine.Profile.Current.EnableDeathScreen = _enableDeathScreen.IsChecked;
             Engine.Profile.Current.EnableBlackWhiteEffect = _enableBlackWhiteEffect.IsChecked;
@@ -1003,10 +1136,13 @@ namespace ClassicUO.Game.UI.Gumps
 
             if (gameWindowSizeWidth != Engine.Profile.Current.GameWindowSize.X || gameWindowSizeHeight != Engine.Profile.Current.GameWindowSize.Y)
             {
-                Point n = vp.ResizeWindow(new Point(gameWindowSizeWidth, gameWindowSizeHeight));
+                if (vp != null)
+                {
+                    Point n = vp.ResizeWindow(new Point(gameWindowSizeWidth, gameWindowSizeHeight));
 
-                _gameWindowWidth.Text = n.X.ToString();
-                _gameWindowHeight.Text = n.Y.ToString();
+                    _gameWindowWidth.Text = n.X.ToString();
+                    _gameWindowHeight.Text = n.Y.ToString();
+                }
             }
 
             int.TryParse(_gameWindowPositionX.Text, out int gameWindowPositionX);
@@ -1014,12 +1150,12 @@ namespace ClassicUO.Game.UI.Gumps
 
             if (gameWindowPositionX != Engine.Profile.Current.GameWindowPosition.X || gameWindowPositionY != Engine.Profile.Current.GameWindowPosition.Y)
             {
-                vp.Location = Engine.Profile.Current.GameWindowPosition = new Point(gameWindowPositionX, gameWindowPositionY);
+                if (vp != null) vp.Location = Engine.Profile.Current.GameWindowPosition = new Point(gameWindowPositionX, gameWindowPositionY);
             }
 
             if (Engine.Profile.Current.GameWindowLock != _gameWindowLock.IsChecked)
             {
-                vp.CanMove = !_gameWindowLock.IsChecked;
+                if (vp != null) vp.CanMove = !_gameWindowLock.IsChecked;
                 Engine.Profile.Current.GameWindowLock = _gameWindowLock.IsChecked;
             }
 
@@ -1031,17 +1167,23 @@ namespace ClassicUO.Game.UI.Gumps
             
             if (Engine.Profile.Current.GameWindowFullSize != _gameWindowFullsize.IsChecked)
             {
-                Point n, loc;
+                Point n = Point.Zero, loc = Point.Zero;
 
                 if (_gameWindowFullsize.IsChecked)
                 {
-                    n = vp.ResizeWindow(new Point(Engine.WindowWidth, Engine.WindowHeight));
-                    loc = Engine.Profile.Current.GameWindowPosition = vp.Location = new Point(-5, -5);
+                    if (vp != null)
+                    {
+                        n = vp.ResizeWindow(new Point(Engine.WindowWidth, Engine.WindowHeight));
+                        loc = Engine.Profile.Current.GameWindowPosition = vp.Location = new Point(-5, -5);
+                    }
                 }
                 else
                 {
-                    n = vp.ResizeWindow(new Point(600, 480));
-                    loc = vp.Location = Engine.Profile.Current.GameWindowPosition = new Point(20, 20);
+                    if (vp != null)
+                    {
+                        n = vp.ResizeWindow(new Point(600, 480));
+                        loc = vp.Location = Engine.Profile.Current.GameWindowPosition = new Point(20, 20);
+                    }
                 }
 
                 _gameWindowPositionX.Text = loc.X.ToString();
@@ -1079,6 +1221,33 @@ namespace ClassicUO.Game.UI.Gumps
 
             // macros
             Engine.Profile.Current.Macros = Engine.SceneManager.GetScene<GameScene>().Macros.GetAllMacros().ToArray();
+
+
+            // counters
+
+            bool before = Engine.Profile.Current.CounterBarEnabled;
+            Engine.Profile.Current.CounterBarEnabled = _enableCounters.IsChecked;
+            Engine.Profile.Current.CounterBarCellSize = _cellSize.Value;
+            Engine.Profile.Current.CounterBarRows = int.Parse(_rows.Text);
+            Engine.Profile.Current.CounterBarColumns = int.Parse(_columns.Text);
+            Engine.Profile.Current.CounterBarHighlightOnUse = _highlightOnUse.IsChecked;
+
+
+
+            CounterBarGump counterGump = Engine.UI.GetByLocalSerial<CounterBarGump>();
+
+            counterGump?.SetLayout(Engine.Profile.Current.CounterBarCellSize,
+                                   Engine.Profile.Current.CounterBarRows,
+                                   Engine.Profile.Current.CounterBarColumns);
+
+
+            if (before != Engine.Profile.Current.CounterBarEnabled)
+            {
+                counterGump?.Dispose();
+                if (Engine.Profile.Current.CounterBarEnabled)
+                    Engine.UI.Add(new CounterBarGump(200, 200, Engine.Profile.Current.CounterBarCellSize, Engine.Profile.Current.CounterBarRows, Engine.Profile.Current.CounterBarColumns));
+            }
+
 
             Engine.Profile.Current?.Save(Engine.UI.Gumps.OfType<Gump>().Where(s => s.CanBeSaved).Reverse().ToList());
         }
@@ -1140,6 +1309,7 @@ namespace ClassicUO.Game.UI.Gumps
             {
                 Label text = new Label(label, true, HUE_FONT, 0, FONT)
                 {
+                    X = elem.X - 10,
                     Y = elem.Y - 30
                 };
                 area.Add(text);
@@ -1193,7 +1363,7 @@ namespace ClassicUO.Game.UI.Gumps
             return box;
         }
 
-        class ClickableColorBox : ColorBox
+        private class ClickableColorBox : ColorBox
         {
             private const int CELL = 12;
 
@@ -1230,7 +1400,7 @@ namespace ClassicUO.Game.UI.Gumps
             }
         }
 
-        class FontSelector : Control
+        private class FontSelector : Control
         {
             private readonly RadioButton[] _buttons = new RadioButton[20];
 

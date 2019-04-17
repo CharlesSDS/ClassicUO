@@ -41,19 +41,23 @@ namespace ClassicUO.Renderer
         //    DepthBufferEnable = true,
         //    DepthBufferWriteEnable = true
         //};
-        //private readonly DepthStencilState _dssStencil = new DepthStencilState
-        //{
-        //    StencilEnable = true,
-        //    StencilFunction = CompareFunction.Always,
-        //    StencilPass = StencilOperation.Replace,
-        //    DepthBufferEnable = false,
-        //};
+        private readonly DepthStencilState _dssStencil = new DepthStencilState
+        {
+            StencilEnable = false,
+            DepthBufferEnable = false,
+            StencilFunction = CompareFunction.NotEqual,
+            ReferenceStencil = 1,
+            StencilMask = 1,
+            StencilFail = StencilOperation.Keep,
+            StencilDepthBufferFail = StencilOperation.Keep,
+            StencilPass = StencilOperation.Keep,
+        };
         private readonly VertexBuffer _vertexBuffer;
         private readonly IndexBuffer _indexBuffer;
         private readonly Texture2D[] _textureInfo;
         private readonly SpriteVertex[] _vertexInfo;
         private bool _started;
-        private readonly Vector3 _minVector3 = new Vector3(0, 0, int.MinValue);
+        private readonly Vector3 _minVector3 = new Vector3(0, 0, -150);
         private readonly RasterizerState _rasterizerState;
         private BlendState _blendState;
         private DepthStencilState _stencil;
@@ -62,6 +66,8 @@ namespace ClassicUO.Renderer
 
         private int _numSprites;
         private readonly SpriteVertex[] _vertexBufferUI = new SpriteVertex[4];
+
+        public DepthStencilState Stencil => _dssStencil;
       
         public Batcher2D(GraphicsDevice device)
         {
@@ -90,7 +96,7 @@ namespace ClassicUO.Renderer
                 ScissorTestEnable = true
             };
 
-            _stencil = DepthStencilState.None;
+            _stencil = _dssStencil;
         }
 
         public Matrix TransformMatrix => _transformMatrix;
@@ -124,7 +130,9 @@ namespace ClassicUO.Renderer
             _started = true;
 
             _drawingArea.Min = _minVector3;
-            _drawingArea.Max = new Vector3(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, int.MaxValue);
+            _drawingArea.Max.X = GraphicsDevice.Viewport.Width;
+            _drawingArea.Max.Y = GraphicsDevice.Viewport.Height;
+            _drawingArea.Max.Z = 150;
 
             _customEffect = customEffect;
         }
@@ -435,12 +443,18 @@ namespace ClassicUO.Renderer
             };
 
             for (int i = 0; i < 4; i++)
-                _vertexBufferUI[i].Position = new Vector3(posLeftTop[i, 0], posLeftTop[i, 1], 0);
+            {
+                _vertexBufferUI[i].Position.X = posLeftTop[i, 0];
+                _vertexBufferUI[i].Position.X = posLeftTop[i, 1];
+            }
 
             DrawSprite(texture, _vertexBufferUI, Techniques.Hued);
 
             for (int i = 0; i < 4; i++)
-                _vertexBufferUI[i].Position = new Vector3(poTopRight[i, 0], poTopRight[i, 1], 0);
+            {
+                _vertexBufferUI[i].Position.X = poTopRight[i, 0];
+                _vertexBufferUI[i].Position.X = poTopRight[i, 1];
+            }
 
             DrawSprite(texture, _vertexBufferUI, Techniques.Hued);
 
@@ -571,11 +585,15 @@ namespace ClassicUO.Renderer
 
             _isometricEffect.ProjectionMatrix.SetValue(_matrixTransformMatrix);
             _isometricEffect.WorldMatrix.SetValue(_transformMatrix);
-            _isometricEffect.Viewport.SetValue(new Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
-            //_projectionMatrixEffect.SetValue(matrixTransformMatrix);
-            //_worldMatrixEffect.SetValue(_transformMatrix);
 
-            //_viewportEffect.SetValue(new Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
+            Vector2 vec = new Vector2
+            {
+                X = GraphicsDevice.Viewport.Width,
+                Y = GraphicsDevice.Viewport.Height
+            };
+
+            _isometricEffect.Viewport.SetValue(vec);
+
             GraphicsDevice.SetVertexBuffer(_vertexBuffer);
             GraphicsDevice.Indices = _indexBuffer;
 
@@ -653,7 +671,7 @@ namespace ClassicUO.Renderer
             if (!noflush)
                 Flush();
 
-            _stencil = stencil ?? DepthStencilState.None;
+            _stencil = stencil ?? _dssStencil;
         }
 
         private static short[] GenerateIndexArray()
@@ -674,7 +692,7 @@ namespace ClassicUO.Renderer
         }
     }
 
-    class Resources
+    internal class Resources
     {
         private static byte[] GetResource(string name)
         {

@@ -420,7 +420,7 @@ namespace ClassicUO.Game.UI.Controls
 	    {
 		    ClearTooltip();
 
-		    if (entity != null & !entity.IsDestroyed)
+		    if (entity != null && !entity.IsDestroyed)
 			    Tooltip = entity;
 	    }
 
@@ -467,10 +467,8 @@ namespace ClassicUO.Game.UI.Controls
         {
             bool initializedKeyboardFocusedControl = false;
 
-            for (int i = 0; i < _children.Count; i++)
+            foreach (Control c in _children)
             {
-                Control c = _children[i];
-
                 if (!c.IsInitialized && !IsDisposed)
                 {
                     c.Initialize();
@@ -487,22 +485,20 @@ namespace ClassicUO.Game.UI.Controls
      
         public Control[] HitTest(Point position)
         {
-            List<Control> results = new List<Control>();
-            //Stack<Control> results = new Stack<Control>();
+            //List<Control> results = new List<Control>();
+            Stack<Control> results = new Stack<Control>();
 
             if (Bounds.Contains(position.X - ParentX, position.Y - ParentY))
             {
                 if (Contains(position.X - X - ParentX, position.Y - Y - ParentY))
                 {
                     if (AcceptMouseInput)
-                        results.Insert(0, this);
+                        results.Push(this);
                     //results.Add(this);
                     //results.Insert(0, this);  //results.Push(this);
 
-                    for (int i = 0; i < Children.Count; i++)
+                    foreach (Control c in Children)
                     {
-                        Control c = Children[i];
-
                         if (c.Page == 0 || c.Page == ActivePage)
                         {
                             var cl = c.HitTest(position);
@@ -510,7 +506,8 @@ namespace ClassicUO.Game.UI.Controls
                             if (cl != null)
                             {
                                 for (int j = cl.Length - 1; j >= 0; j--)
-                                    results.Insert(0, cl[j]);
+                                    results.Push(cl[j]);
+                                //results.Insert(0, cl[j]);
                                 //results.AddRange(cl);
                             }
                         }
@@ -520,9 +517,10 @@ namespace ClassicUO.Game.UI.Controls
 
             if (results.Count != 0)
             {
-                results.Sort((a, b) => a.Priority.CompareTo(b.Priority));
+                var res = results.ToArray();
+                Array.Sort(res, (a, b) => a.Priority.CompareTo(b.Priority));
 
-                return results.ToArray();
+                return res;
             }
 
             return null;
@@ -579,6 +577,7 @@ namespace ClassicUO.Game.UI.Controls
         {
             return Children.OfType<T>().Where(s => !s.IsDisposed);
         }
+
 
         public void InvokeMouseDown(Point position, MouseButton button)
         {

@@ -57,7 +57,7 @@ namespace ClassicUO.Game.Scenes
         private OverheadManager _overheadManager;
         private HotkeysManager _hotkeysManager;
         private MacroManager _macroManager;
-        private GameObject _selectedObject;
+        private IGameEntity _selectedObject;
         private UseItemQueue _useItemQueue = new UseItemQueue();
         private bool _alphaChanged;
         private long _alphaTimer;
@@ -110,7 +110,7 @@ namespace ClassicUO.Game.Scenes
 
         public Point MouseOverWorldPosition => _viewPortGump == null ? Point.Zero : new Point((int) ((Mouse.Position.X - _viewPortGump.ScreenCoordinateX) * Scale), (int) ((Mouse.Position.Y - _viewPortGump.ScreenCoordinateY) * Scale));
 
-        public GameObject SelectedObject
+        public IGameEntity SelectedObject
         {
             get => _selectedObject;
             set
@@ -139,7 +139,7 @@ namespace ClassicUO.Game.Scenes
 
         public OverheadManager Overheads => _overheadManager;
 
-        private bool UseLights => World.Light.Personal < World.Light.Overall;
+        public bool UseLights => Engine.Profile.Current != null && Engine.Profile.Current.UseCustomLightLevel ? World.Light.Personal < World.Light.Overall : World.Light.RealPersonal < World.Light.RealOverall;
 
         public void DoubleClickDelayed(Serial serial)
             => _useItemQueue.Add(serial);
@@ -212,7 +212,7 @@ namespace ClassicUO.Game.Scenes
             CommandManager.Initialize();
             NetClient.Socket.Disconnected += SocketOnDisconnected;
 
-            Chat.Message += ChatOnMessage;
+            Chat.MessageReceived += ChatOnMessageReceived;
 
             if (!Engine.Profile.Current.EnableScaleZoom || !Engine.Profile.Current.SaveScaleAfterClose)
                 Scale = 1f;
@@ -222,11 +222,9 @@ namespace ClassicUO.Game.Scenes
             Engine.Profile.Current.RestoreScaleValue = Engine.Profile.Current.ScaleZoom = Scale;
 
             Plugin.OnConnected();
-
-            //Engine.UI.Add(new CounterBarGump());
         }
 
-        private void ChatOnMessage(object sender, UOMessageEventArgs e)
+        private void ChatOnMessageReceived(object sender, UOMessageEventArgs e)
         {
             if (e.Type == MessageType.Command)
                 return;
@@ -318,6 +316,7 @@ namespace ClassicUO.Game.Scenes
             NetClient.Socket.Disconnected -= SocketOnDisconnected;
             NetClient.Socket.Disconnect();
             _renderTarget?.Dispose();
+            _darkness?.Dispose();
             CommandManager.UnRegisterAll();
 
             Engine.UI?.Clear();
@@ -340,7 +339,7 @@ namespace ClassicUO.Game.Scenes
             _useItemQueue = null;
             _hotkeysManager = null;
             _macroManager = null;
-            Chat.Message -= ChatOnMessage;
+            Chat.MessageReceived -= ChatOnMessageReceived;
             _blendText?.Dispose();
 
             base.Unload();
@@ -624,7 +623,7 @@ namespace ClassicUO.Game.Scenes
             return base.Draw(batcher);
         }
 
-
+        
         
         private void DrawWorld(Batcher2D batcher)
         {
@@ -633,6 +632,7 @@ namespace ClassicUO.Game.Scenes
 
             batcher.Begin();
             batcher.SetLightDirection(World.Light.IsometricDirection);
+
             if (!_deathScreenActive)
             {
                 RenderedObjectsCount = 0;
@@ -645,7 +645,7 @@ namespace ClassicUO.Game.Scenes
                     //if (!_renderList[i].TryGetTarget(out var obj))
                     //    continue;
 
-                    var obj = _renderList[i];
+                    GameObject obj = _renderList[i];
 
                     if (obj.Z <= _maxGroundZ)
                     {
@@ -656,10 +656,29 @@ namespace ClassicUO.Game.Scenes
                             RenderedObjectsCount++;
                         }
                     }
+
+                    //obj = null;
                 }
+
+                if (TargetManager.IsTargeting && TargetManager.TargetingState == CursorTarget.MultiPlacement)
+                {
+                    Item multiTarget = new Item(Serial.INVALID)
+                    {
+                        Graphic = TargetManager.MultiTargetInfo.Model,
+                        IsMulti = true
+                    };
+
+                    if (SelectedObject != null && SelectedObject is GameObject gobj && (gobj is Land || gobj is Static))
+                    {                        
+                        multiTarget.Position = gobj.Position + TargetManager.MultiTargetInfo.Offset;
+                        multiTarget.CheckGraphicChange();
+                    }
+                    multiTarget.Draw(batcher, multiTarget.RealScreenPosition, _mouseOverList);
+                }
+
             }
             batcher.End();
-          
+
             DrawLights(batcher);
 
             batcher.GraphicsDevice.SetRenderTarget(null);
@@ -686,14 +705,11 @@ namespace ClassicUO.Game.Scenes
             {
                 ref var l = ref _lights[i];
 
-                var texture = FileManager.Lights.GetTexture(l.ID);
+                SpriteTexture texture = FileManager.Lights.GetTexture(l.ID);
 
-                Vector3 pos = new Vector3(l.DrawX, l.DrawY, 0);
-
-                var vertex = SpriteVertex.PolyBuffer;
-                vertex[0].Position = pos;
-                vertex[0].Position.X -= texture.Width / 2;
-                vertex[0].Position.Y -= texture.Height / 2;
+                SpriteVertex[] vertex = SpriteVertex.PolyBuffer;
+                vertex[0].Position.X = l.DrawX - texture.Width / 2;
+                vertex[0].Position.Y = l.DrawY - texture.Height / 2;
                 vertex[0].TextureCoordinate.Y = 0;
                 vertex[1].Position = vertex[0].Position;
                 vertex[1].Position.X += texture.Width;
@@ -720,9 +736,9 @@ namespace ClassicUO.Game.Scenes
 
         public void DrawOverheads(Batcher2D batcher, int x, int y)
         {
-            batcher.SetBlendState(_blendText);
-            _overheadManager.Draw(batcher, _mouseOverList, _offset, x, y);
-            batcher.SetBlendState(null);
+            //batcher.SetBlendState(_blendText);
+            _overheadManager.Draw(batcher, _mouseOverList, x, y);
+           // batcher.SetBlendState(null);
             // workaround to set overheads clickable
             _mousePicker.UpdateOverObjects(_mouseOverList, _mouseOverList.MousePosition);
         }

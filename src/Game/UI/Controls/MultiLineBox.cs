@@ -129,19 +129,23 @@ namespace ClassicUO.Game.UI.Controls
 
         protected override void OnKeyDown(SDL.SDL_Keycode key, SDL.SDL_Keymod mod)
         {
-            string s = null;
             int oldidx = TxEntry.CaretIndex;
             if (Input.Keyboard.IsModPressed(mod, SDL.SDL_Keymod.KMOD_CTRL) && key == SDL.SDL_Keycode.SDLK_v)//paste
             {
                 if (SDL.SDL_HasClipboardText() == SDL.SDL_bool.SDL_FALSE)
                     return;
 
-                s = SDL.SDL_GetClipboardText();
+                string s = SDL.SDL_GetClipboardText();
                 if (!string.IsNullOrEmpty(s))
                 {
                     Parent?.OnKeyboardReturn(PasteCommandID, s);
                     return;
                 }
+            }
+            else if (Input.Keyboard.IsModPressed(mod, SDL.SDL_Keymod.KMOD_CTRL) && (key == SDL.SDL_Keycode.SDLK_x || key == SDL.SDL_Keycode.SDLK_c))
+            {
+                string txt = TxEntry.GetSelectionText(key == SDL.SDL_Keycode.SDLK_x);
+                SDL.SDL_SetClipboardText(txt);
             }
             else switch (key)
                 {
@@ -155,10 +159,10 @@ namespace ClassicUO.Game.UI.Controls
                         TxEntry.RemoveChar(true);
                         break;
                     case SDL.SDL_Keycode.SDLK_UP:
-                        TxEntry.OnMouseClick(TxEntry.CaretPosition.X, TxEntry.CaretPosition.Y - (TxEntry.RenderCaret.Height >> 1));
+                        TxEntry.OnMouseClick(TxEntry.CaretPosition.X, TxEntry.CaretPosition.Y - (TxEntry.RenderCaret.Height >> 1), false);
                         break;
                     case SDL.SDL_Keycode.SDLK_DOWN:
-                        TxEntry.OnMouseClick(TxEntry.CaretPosition.X, TxEntry.CaretPosition.Y + TxEntry.RenderCaret.Height);
+                        TxEntry.OnMouseClick(TxEntry.CaretPosition.X, TxEntry.CaretPosition.Y + TxEntry.RenderCaret.Height, false);
                         break;
                     case SDL.SDL_Keycode.SDLK_LEFT:
                         TxEntry.SeekCaretPosition(-1);

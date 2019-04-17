@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ClassicUO.Game
 {
-    class CircleOfTransparency
+    internal class CircleOfTransparency
     {
         private Texture2D _texture;
         private short _width, _height;
@@ -54,34 +54,37 @@ namespace ClassicUO.Game
 
                     int pos = posX + y;
 
-                    pixels[pos] = HuesHelper.RgbaToArgb(pic);
+                    pixels[pos] = pic; // HuesHelper.RgbaToArgb(pic);
                 }
             }
 
             return pixels;
         }
 
-        private readonly Lazy<DepthStencilState> _stencil = new Lazy<DepthStencilState>(() =>
+        private static readonly Lazy<DepthStencilState> _stencil = new Lazy<DepthStencilState>(() =>
         {
-            DepthStencilState state = new DepthStencilState();
+            DepthStencilState state = new DepthStencilState
+            {
+                DepthBufferEnable = false,
+                StencilEnable = true,
+                StencilFunction = CompareFunction.Always,
+                ReferenceStencil = 1,
+                StencilMask = 1,
+                StencilFail = StencilOperation.Keep,
+                StencilDepthBufferFail = StencilOperation.Keep,
+                StencilPass = StencilOperation.Replace
+            };
 
-            state.DepthBufferEnable = true;
-            state.StencilEnable = true;
-            state.StencilFunction = CompareFunction.Always;
-            state.ReferenceStencil = 1;
-            state.StencilMask = 1;
 
-            state.StencilFail = StencilOperation.Keep;
-            state.StencilDepthBufferFail = StencilOperation.Keep;
-            state.StencilPass = StencilOperation.Replace;
 
             return state;
         });
 
         private static readonly Lazy<BlendState> _checkerBlend = new Lazy<BlendState>(() =>
         {
-            BlendState blend = new BlendState();
+            BlendState blend = BlendState.AlphaBlend;
             blend.ColorWriteChannels = ColorWriteChannels.Alpha;
+
             return blend;
         });
         public void Draw(Batcher2D batcher, int x, int y)
@@ -90,15 +93,20 @@ namespace ClassicUO.Game
             {
                 X = x - Width / 2;
                 Y = y - Height / 2;
+                //batcher.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, new Vector4(0, 0, 0, 1), 0, 0);
 
-                batcher.SetBlendState(_checkerBlend.Value);
+                batcher.Begin();
                 batcher.SetStencil(_stencil.Value);
+                //batcher.SetBlendState(_checkerBlend.Value);
 
-                batcher.Draw2D(_texture, X, Y, new Vector3(20, 1, 0));
+                BlendState.AlphaBlend.ColorWriteChannels = ColorWriteChannels.Alpha;
+                batcher.Draw2D(_texture, X, Y, Vector3.Zero);
+                BlendState.AlphaBlend.ColorWriteChannels = ColorWriteChannels.All;
 
-                batcher.SetBlendState(null);
+                //batcher.SetBlendState(null);
                 batcher.SetStencil(null);
 
+                batcher.End();
             }
         }
 

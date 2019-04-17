@@ -121,7 +121,7 @@ namespace ClassicUO.Configuration
         [JsonProperty] public ushort TooltipTextHue { get; set; } = 0xFFFF;
 
         // movements
-        [JsonProperty] public bool EnablePathfind { get; set; } = true;
+        [JsonProperty] public bool EnablePathfind { get; set; } = false;
         [JsonProperty] public bool AlwaysRun { get; set; }
         [JsonProperty] public bool SmoothMovements { get; set; } = true;
         [JsonProperty] public bool HoldDownKeyTab { get; set; } = true;
@@ -142,6 +142,14 @@ namespace ClassicUO.Configuration
         [JsonProperty] public bool UseCustomLightLevel { get; set; } = false;
         [JsonProperty] public byte LightLevel { get; set; } = 0;
         [JsonProperty] public int CloseHealthBarType { get; set; } = 0; // 0 = none, 1 == not exists, 2 == is dead
+
+        [JsonProperty] public bool ActivateChatAfterEnter { get; set; } = false;
+        [JsonProperty] public bool ActivateChatStatus { get; set; } = true;
+        [JsonProperty] public bool ActivateChatIgnoreHotkeys { get; set; } = true;
+        [JsonProperty] public bool ActivateChatIgnoreHotkeysPlugins { get; set; } = true;
+        [JsonProperty] public bool ActivateChatAdditionalButtons { get; set; } = true;
+        [JsonProperty] public bool ActivateChatShiftEnterSupport { get; set; } = true;
+        [JsonProperty] public bool ActivateChatCompletelyHide { get; set; } = false;
 
         [JsonProperty] public int MaxFPS { get; set; } = 60;
 
@@ -205,6 +213,13 @@ namespace ClassicUO.Configuration
             },
         };
 
+        [JsonProperty] public bool CounterBarEnabled { get; set; } = false;
+        [JsonProperty] public bool CounterBarHighlightOnUse { get; set; } = false;
+        [JsonProperty] public int CounterBarCellSize { get; set; } = 40;
+        [JsonProperty] public int CounterBarRows { get; set; } = 1;
+        [JsonProperty] public int CounterBarColumns { get; set; } = 1;
+
+
         internal static string ProfilePath { get; } = Path.Combine(Engine.ExePath, "Data", "Profiles");
         internal static string DataPath { get; } = Path.Combine(Engine.ExePath, "Data");
         public void Save(List<Gump> gumps = null)
@@ -221,7 +236,7 @@ namespace ClassicUO.Configuration
             Log.Message(LogTypes.Trace, $"Saving path:\t\t{path}");
 
             // save settings.json
-            ConfigurationResolver.Save(this, Path.Combine(path, "settings.json"), new JsonSerializerSettings()
+            ConfigurationResolver.Save(this, Path.Combine(path, Engine.SettingsFile), new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.All,
                 MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead

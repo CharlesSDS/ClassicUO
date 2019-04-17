@@ -180,6 +180,11 @@ namespace ClassicUO.Game.UI.Controls
                     return;
                 }
             }
+            else if (!TxEntry.IsPassword && Input.Keyboard.IsModPressed(mod, SDL.SDL_Keymod.KMOD_CTRL) && (key == SDL.SDL_Keycode.SDLK_x || key == SDL.SDL_Keycode.SDLK_c))
+            {
+                string txt = TxEntry.GetSelectionText(key == SDL.SDL_Keycode.SDLK_x);
+                SDL.SDL_SetClipboardText(txt);
+            }
             else
             {
                 switch (key)
@@ -191,14 +196,9 @@ namespace ClassicUO.Game.UI.Controls
                         break;
                     case SDL.SDL_Keycode.SDLK_BACKSPACE:
                         if (!ReplaceDefaultTextOnFirstKeyPress)
-                        {
                             TxEntry.RemoveChar(true);
-                        }
                         else
-                        {
                             ReplaceDefaultTextOnFirstKeyPress = false;
-                        }
-
                         break;
                     case SDL.SDL_Keycode.SDLK_LEFT:
                         TxEntry.SeekCaretPosition(-1);

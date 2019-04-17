@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 using ClassicUO.Game.Data;
 using ClassicUO.Game.GameObjects;
@@ -29,23 +28,18 @@ using ClassicUO.Game.Managers;
 using ClassicUO.Game.UI.Controls;
 using ClassicUO.Game.UI.Gumps;
 using ClassicUO.Input;
-using ClassicUO.Interfaces;
 using ClassicUO.IO;
-using ClassicUO.IO.Resources;
-using ClassicUO.Network;
-using ClassicUO.Renderer;
 using ClassicUO.Utility;
 using ClassicUO.Utility.Logging;
 
 using Microsoft.Xna.Framework;
-
 using SDL2;
 
 using Multi = ClassicUO.Game.GameObjects.Multi;
 
 namespace ClassicUO.Game.Scenes
 {
-    partial class GameScene
+    internal partial class GameScene
     {
         private double _dequeueAt;
         private bool _inqueue;
@@ -102,7 +96,7 @@ namespace ClassicUO.Game.Scenes
                     _continueRunning = true;
                 }
                 
-                _dragginObject = _mousePicker.MouseOverObject;
+                _dragginObject = _mousePicker.MouseOverObject as GameObject;
                 _dragOffset = _mousePicker.MouseOverObjectPoint;
                 
             }
@@ -133,7 +127,7 @@ namespace ClassicUO.Game.Scenes
                         case CursorTarget.Position:
                         case CursorTarget.Object:
                         case CursorTarget.MultiPlacement:
-                            GameObject obj = SelectedObject;
+                            var obj = SelectedObject;
                             if (obj != null)
                             {
                                 TargetManager.TargetGameObject(obj);
@@ -143,12 +137,11 @@ namespace ClassicUO.Game.Scenes
                             break;
 
                         case CursorTarget.SetTargetClientSide:
-                            obj = SelectedObject;
-                            if (obj != null)
+                            if (SelectedObject is  GameObject obj2)
                             {
-                                TargetManager.TargetGameObject(obj);
+                                TargetManager.TargetGameObject(obj2);
                                 Mouse.LastLeftButtonClickTime = 0;
-                                Engine.UI.Add(new InfoGump(obj));
+                                Engine.UI.Add(new InfoGump(obj2));
 
                             }
                             break;
@@ -161,10 +154,8 @@ namespace ClassicUO.Game.Scenes
                 else if (IsHoldingItem)
                 {
                     SelectedObject = null;
-      
-                    GameObject obj = _mousePicker.MouseOverObject;
 
-                    if (obj != null && obj.Distance < Constants.DRAG_ITEMS_DISTANCE)
+                    if (_mousePicker.MouseOverObject is GameObject obj && obj.Distance < Constants.DRAG_ITEMS_DISTANCE)
                     {
                         switch (obj)
                         {
@@ -209,7 +200,7 @@ namespace ClassicUO.Game.Scenes
                 }
                 else
                 {                 
-                    GameObject obj = _mousePicker.MouseOverObject;
+                    GameObject obj = _mousePicker.MouseOverObject as GameObject;
 
                     switch (obj)
                     {
@@ -217,23 +208,22 @@ namespace ClassicUO.Game.Scenes
                             string name = st.Name;
                             if (string.IsNullOrEmpty(name))
                                 name = FileManager.Cliloc.GetString(1020000 + st.Graphic);
-                            if (!obj.HasOverheads || obj.Overheads.Count == 0)
-                                obj.AddOverhead(MessageType.Label, name, 3, 0, false);
+                            obj.AddOverhead(MessageType.Label, name, 3, 0, false);
                             break;
 
                         case Multi multi:
                             name = multi.Name;
                             if (string.IsNullOrEmpty(name))
                                 name = FileManager.Cliloc.GetString(1020000 + multi.Graphic);
-                            if (!obj.HasOverheads || obj.Overheads.Count == 0)
-                                obj.AddOverhead(MessageType.Label, name, 3, 0, false);
+                            obj.AddOverhead(MessageType.Label, name, 3, 0, false);
                             break;
 
-                        case ServerEntity entity:
+                        case AnimatedItemEffect effect when effect.Source is Entity:
+                        case Entity _:
                             if (!_inqueue)
                             {
                                 _inqueue = true;
-                                _queuedObject = entity;
+                                _queuedObject = obj is AnimatedItemEffect ef ? (Entity)ef.Source : (Entity)obj;
                                 _dequeueAt = Mouse.MOUSE_DELAY_DOUBLE_CLICK;
                                 _queuedAction = () =>
                                 {
@@ -258,7 +248,7 @@ namespace ClassicUO.Game.Scenes
         {
             if (e.Button == MouseButton.Left)
             {
-                GameObject obj = _mousePicker.MouseOverObject;
+                IGameEntity obj = _mousePicker.MouseOverObject;
 
                 switch (obj)
                 {
@@ -279,8 +269,7 @@ namespace ClassicUO.Game.Scenes
                         e.Result = true;
                         GameActions.DoubleClick(item);
                         break;
-
-                    case TextOverhead overhead when overhead.Parent is ServerEntity entity:
+                    case MessageInfo msg when msg.Parent.Parent is Entity entity:
                         e.Result = true;
                         GameActions.DoubleClick(entity);
                         break;
@@ -292,11 +281,9 @@ namespace ClassicUO.Game.Scenes
             {
                 if (Engine.Profile.Current.EnablePathfind && !Pathfinder.AutoWalking)
                 {
-                    if (_mousePicker.MouseOverObject is Land || (GameObjectHelper.TryGetStaticData(_mousePicker.MouseOverObject, out var itemdata) && itemdata.IsSurface))
+                    if (_mousePicker.MouseOverObject is Land || (GameObjectHelper.TryGetStaticData(_mousePicker.MouseOverObject as GameObject, out var itemdata) && itemdata.IsSurface))
                     {
-                        GameObject obj = _mousePicker.MouseOverObject;
-
-                        if (Pathfinder.WalkTo(obj.X, obj.Y, obj.Z, 0))
+                        if (_mousePicker.MouseOverObject is GameObject obj && Pathfinder.WalkTo(obj.X, obj.Y, obj.Z, 0))
                         {
                             World.Player.AddOverhead(MessageType.Label, "Pathfinding!", 3, 0, false);
                             e.Result = true;
@@ -379,11 +366,19 @@ namespace ClassicUO.Game.Scenes
 
         private void OnKeyDown(object sender, SDL.SDL_KeyboardEvent e)
         {
+            _isShiftDown = Input.Keyboard.IsModPressed(e.keysym.mod, SDL.SDL_Keymod.KMOD_SHIFT);
+            _isCtrlDown = Input.Keyboard.IsModPressed(e.keysym.mod, SDL.SDL_Keymod.KMOD_CTRL);
+
             if (TargetManager.IsTargeting && e.keysym.sym == SDL.SDL_Keycode.SDLK_ESCAPE && Input.Keyboard.IsModPressed(e.keysym.mod, SDL.SDL_Keymod.KMOD_NONE))
                 TargetManager.CancelTarget();
 
-            _isShiftDown = Input.Keyboard.IsModPressed(e.keysym.mod, SDL.SDL_Keymod.KMOD_SHIFT);
-            _isCtrlDown = Input.Keyboard.IsModPressed(e.keysym.mod, SDL.SDL_Keymod.KMOD_CTRL);
+            if (Engine.Profile.Current.ActivateChatAfterEnter)
+            {
+                // Activate chat after `Enter` pressing, 
+                // If chat active - ignores hotkeys from cuo
+                if (Engine.Profile.Current.ActivateChatIgnoreHotkeys && Engine.Profile.Current.ActivateChatStatus)
+                    return;
+            }
 
             if (e.keysym.sym == SDL.SDL_Keycode.SDLK_TAB)
                 if (!World.Player.InWarMode && Engine.Profile.Current.HoldDownKeyTab)
@@ -391,10 +386,15 @@ namespace ClassicUO.Game.Scenes
 
             if (_keycodeDirection.TryGetValue(e.keysym.sym, out Direction dWalk))
             {
-                WorldViewportGump viewport = Engine.UI.GetByLocalSerial<WorldViewportGump>();
-                SystemChatControl chat = viewport?.FindControls<SystemChatControl>().SingleOrDefault();
-                if (chat != null && chat.textBox.Text.Length == 0)
+                if (!Engine.Profile.Current.ActivateChatStatus)
                     World.Player.Walk(dWalk, false);
+                else
+                {
+                    WorldViewportGump vp = Engine.UI.GetByLocalSerial<WorldViewportGump>();
+                    SystemChatControl chat = vp?.FindControls<SystemChatControl>().SingleOrDefault();
+                    if (chat != null && chat.textBox.Text.Length == 0)
+                        World.Player.Walk(dWalk, false);
+                }
             }
 
             if ((e.keysym.mod & SDL2.SDL.SDL_Keymod.KMOD_NUM) != SDL2.SDL.SDL_Keymod.KMOD_NUM)

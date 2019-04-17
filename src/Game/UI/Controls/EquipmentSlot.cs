@@ -88,7 +88,6 @@ namespace ClassicUO.Game.UI.Controls
                     Add(_itemGump = new ItemGumpFixed(Item, 18, 18)
                     {
                         HighlightOnMouseOver = false,
-                        ShowLabel = true,
                     });
 
                     ArtTexture texture = (ArtTexture) _itemGump.Texture;
@@ -158,10 +157,10 @@ namespace ClassicUO.Game.UI.Controls
 
 
 
-      
-        class ItemGumpFixed : ItemGump
+        private class ItemGumpFixed : ItemGump
         {
-            private Point _originalSize, _point;
+            private readonly Point _originalSize;
+            private readonly Point _point;
 
             public ItemGumpFixed(Item item, int w, int h) : base(item)
             {
@@ -180,9 +179,10 @@ namespace ClassicUO.Game.UI.Controls
 
             public override bool Draw(Batcher2D batcher, int x, int y)
             {
-                Vector3 huev = ShaderHuesTraslator.GetHueVector(MouseIsOver && HighlightOnMouseOver ? 0x0035 : Item.Hue, Item.ItemData.IsPartialHue, 0, false);
+                Vector3 hue = Vector3.Zero;
+                ShaderHuesTraslator.GetHueVector(ref hue, MouseIsOver && HighlightOnMouseOver ? 0x0035 : Item.Hue, Item.ItemData.IsPartialHue, 0, false);
 
-                return batcher.Draw2D(Texture, x, y, Width, Height, _point.X, _point.Y, _originalSize.X, _originalSize.Y, huev);
+                return batcher.Draw2D(Texture, x, y, Width, Height, _point.X, _point.Y, _originalSize.X, _originalSize.Y, hue);
             }
 
             protected override bool Contains(int x, int y)
@@ -191,27 +191,6 @@ namespace ClassicUO.Game.UI.Controls
             }
 
 
-            protected override void UpdateLabel()
-            {
-                if (World.ClientFlags.TooltipsEnabled)
-                    return;
-
-                if (!Item.IsDestroyed && Item.HasOverheads && Item.Overheads.Count > 0)
-                {
-                    LabelContainer container = Engine.UI.GetByLocalSerial<LabelContainer>(Item);
-
-                    if (container == null)
-                    {
-                        container = new LabelContainer(Item);
-                        Engine.UI.Add(container);
-                    }
-
-                    container.X = ScreenCoordinateX;
-                    container.Y = ScreenCoordinateY;
-
-                    Engine.UI.MakeTopMostGumpOverAnother(container, this);
-                }
-            }
 
         }
     }

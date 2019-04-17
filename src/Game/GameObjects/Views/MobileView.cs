@@ -63,7 +63,8 @@ namespace ClassicUO.Game.GameObjects
             FrameInfo = Rectangle.Empty;
             Rectangle rect = Rectangle.Empty;
 
-            Hue hue = 0, targetColor = 0;
+            Hue hue = 0;
+
             if (Engine.Profile.Current.HighlightMobilesByFlags)
             {
                 if (IsPoisoned)
@@ -82,7 +83,7 @@ namespace ClassicUO.Game.GameObjects
 
             if (this != World.Player && (isAttack || isUnderMouse || TargetManager.LastGameObject == Serial))
             {
-                targetColor = Notoriety.GetHue(NotorietyFlag);
+                Hue targetColor = Notoriety.GetHue(NotorietyFlag);
 
                 if (isAttack || this == TargetManager.LastGameObject)
                 {
@@ -223,10 +224,11 @@ namespace ClassicUO.Game.GameObjects
                 }
 
 
-                if (Engine.Profile.Current.NoColorObjectsOutOfRange && Distance > World.ViewRange)
-                    HueVector = new Vector3(Constants.OUT_RANGE_COLOR, 1, HueVector.Z);
-                else if (World.Player.IsDead && Engine.Profile.Current.EnableBlackWhiteEffect)
+               
+                if (World.Player.IsDead && Engine.Profile.Current.EnableBlackWhiteEffect)
+                {
                     HueVector = new Vector3(Constants.DEAD_RANGE_COLOR, 1, HueVector.Z);
+                }
                 else
                 {
                     bool isPartial = IsHuman && hue == 0;
@@ -254,7 +256,7 @@ namespace ClassicUO.Game.GameObjects
                         }
                     }
 
-                    HueVector = ShaderHuesTraslator.GetHueVector(hue, !IsHidden && isPartial, 0, false);
+                    ShaderHuesTraslator.GetHueVector(ref HueVector, hue, !IsHidden && isPartial, 0, false);
                 }
 
                 base.Draw(batcher, position, objecList);
@@ -345,6 +347,9 @@ namespace ClassicUO.Game.GameObjects
                 if (hash == null)
                     return;
 
+
+                bool partial = hue == 0 && !IsHidden && item.ItemData.IsPartialHue;
+
                 if (hue == 0)
                 {
                     if (direction.Address != direction.PatchedAddress)
@@ -398,11 +403,17 @@ namespace ClassicUO.Game.GameObjects
                 Bounds.Height = frame.Height;
 
                 if (Engine.Profile.Current.NoColorObjectsOutOfRange && Distance > World.ViewRange)
-                    HueVector = new Vector3(Constants.OUT_RANGE_COLOR, 1, HueVector.Z);
+                {
+                    HueVector.X = Constants.OUT_RANGE_COLOR;
+                    HueVector.Y = 1;
+                }
                 else if (World.Player.IsDead && Engine.Profile.Current.EnableBlackWhiteEffect)
-                    HueVector = new Vector3(Constants.DEAD_RANGE_COLOR, 1, HueVector.Z);
+                {
+                    HueVector.X = Constants.DEAD_RANGE_COLOR;
+                    HueVector.Y = 1;
+                }
                 else
-                    HueVector = ShaderHuesTraslator.GetHueVector(IsHidden ? 0x038E : hue, !IsHidden && item.ItemData.IsPartialHue, 0, false);
+                    ShaderHuesTraslator.GetHueVector(ref HueVector, IsHidden ? 0x038E : hue, partial, 0, false);
 
                 base.Draw(batcher, position, objectList);
                 Pick(frame, Bounds, position, objectList);

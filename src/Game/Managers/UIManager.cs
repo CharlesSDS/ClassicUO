@@ -55,6 +55,10 @@ namespace ClassicUO.Game.Managers
         {
             Engine.Input.MouseDragging += (sender, e) =>
             {
+                HandleMouseInput();
+
+                //if (_mouseDownControls[0] == MouseOverControl)
+                //    AttemptDragControl(MouseOverControl, Mouse.Position);
                 if (_isDraggingControl)
                     DoDragControl(Mouse.Position);
             };
@@ -234,10 +238,8 @@ namespace ClassicUO.Game.Managers
             {
                 if (_keyboardFocusControl == null)
                 {
-                    for (int i = 0; i < _gumps.Count; i++)
+                    foreach (Control c in _gumps)
                     {
-                        Control c = _gumps[i];
-
                         if (!c.IsDisposed && c.IsVisible && c.IsEnabled)
                         {
                             _keyboardFocusControl = c.GetFirstControlAcceptKeyboardInput();
@@ -256,8 +258,7 @@ namespace ClassicUO.Game.Managers
             {
                 if (value != null && value.AcceptKeyboardInput)
                 {
-                    if (_keyboardFocusControl != null)
-                        _keyboardFocusControl.OnFocusLeft();
+                    _keyboardFocusControl?.OnFocusLeft();
                     _keyboardFocusControl = value;
                     value.OnFocusEnter();
                 }
@@ -736,7 +737,7 @@ namespace ClassicUO.Game.Managers
                 }
 
                 gump.InvokeMouseOver(position);
-               
+
                 if (_mouseDownControls[0] == gump)
                     AttemptDragControl(gump, position);
             }
@@ -777,10 +778,10 @@ namespace ClassicUO.Game.Managers
 
             if (mouseOverControls != null)
             {
-                for (int i = 0; i < mouseOverControls.Length; i++)
+                foreach (Control t in mouseOverControls)
                 {
-                    if (mouseOverControls[i].AcceptMouseInput)
-                        return mouseOverControls[i];
+                    if (t.AcceptMouseInput)
+                        return t;
                 }
             }
 
@@ -904,13 +905,14 @@ namespace ClassicUO.Game.Managers
 
                 if (_draggingControl == dragTarget)
                 {
-                    int deltaX = mousePosition.X - _dragOriginX;
-                    int deltaY = mousePosition.Y - _dragOriginY;
+                    var p = Mouse.LDroppedOffset;
+                    //int deltaX = mousePosition.X - _dragOriginX;
+                    //int deltaY = mousePosition.Y - _dragOriginY;
 
-                    if (attemptAlwaysSuccessful || Math.Abs(deltaX) + Math.Abs(deltaY) > Constants.MIN_GUMP_DRAG_DISTANCE)
+                    if (attemptAlwaysSuccessful || Math.Abs(p.X) + Math.Abs(p.Y) > Constants.MIN_GUMP_DRAG_DISTANCE)
                     {
                         _isDraggingControl = true;
-                        dragTarget.InvokeDragBegin(new Point(deltaX, deltaY));
+                        dragTarget.InvokeDragBegin(p);
                     }
                 }
                 else

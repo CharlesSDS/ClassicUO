@@ -19,7 +19,6 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using System;
 using System.IO;
 
 using ClassicUO.Game.Data;
@@ -31,13 +30,11 @@ using ClassicUO.IO;
 using ClassicUO.Network;
 using ClassicUO.Renderer;
 
-using Microsoft.Xna.Framework;
-
 using SDL2;
 
 namespace ClassicUO.Game.UI.Gumps
 {
-    class HealthBarGump : AnchorableGump
+    internal class HealthBarGump : AnchorableGump
     {
         private const ushort BACKGROUND_NORMAL = 0x0803;
         private const ushort BACKGROUND_WAR = 0x0807;
@@ -156,8 +153,8 @@ namespace ClassicUO.Game.UI.Gumps
                             _textBox.MouseClick -= TextBoxOnMouseClick;
                     }
 
-                    if (_background.Hue != _barColor)
-                        _background.Hue = _barColor;
+                    if (_background.Hue != 0)
+                        _background.Hue = 0;
 
                     if (_hpLineRed.Hue != hitsColor)
                     {
@@ -166,7 +163,6 @@ namespace ClassicUO.Game.UI.Gumps
                         if (_manaLineRed != null && _stamLineRed != null)
                             _manaLineRed.Hue = _stamLineRed.Hue = hitsColor;
                     }
-
 
                     _bars[0].IsVisible = false;
                 }
@@ -343,7 +339,6 @@ namespace ClassicUO.Game.UI.Gumps
         public override void Save(BinaryWriter writer)
         {
             base.Save(writer);
-
             writer.Write(Mobile.Serial);
         }
 
@@ -456,7 +451,7 @@ namespace ClassicUO.Game.UI.Gumps
                         IsEditable = false,
                         AcceptMouseInput = _canChangeName,
                         AcceptKeyboardInput = _canChangeName,
-                        ValidationRules = (uint)(Constants.RULES.LETTER | Constants.RULES.SPACE),
+                        SafeCharactersOnly = true,
                         Text = _name
                     });
 
@@ -502,15 +497,6 @@ namespace ClassicUO.Game.UI.Gumps
             }
             else if (_canChangeName)
                 _textBox.IsEditable = false;
-        }
-
-        protected override void OnMouseDown(int x, int y, MouseButton button)
-        {
-            if (TargetManager.IsTargeting)
-            {
-                TargetManager.TargetGameObject(Mobile);
-                Mouse.LastLeftButtonClickTime = 0;
-            }
         }
 
         protected override bool OnMouseDoubleClick(int x, int y, MouseButton button)
