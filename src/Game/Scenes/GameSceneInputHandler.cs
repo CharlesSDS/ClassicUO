@@ -218,12 +218,12 @@ namespace ClassicUO.Game.Scenes
                             obj.AddOverhead(MessageType.Label, name, 3, 0, false);
                             break;
 
-                        case AnimatedItemEffect effect when effect.Source is Entity:
-                        case Entity _:
+                        case AnimatedItemEffect effect when effect.Source is ServerEntity:
+                        case ServerEntity _:
                             if (!_inqueue)
                             {
                                 _inqueue = true;
-                                _queuedObject = obj is AnimatedItemEffect ef ? (Entity)ef.Source : (Entity)obj;
+                                _queuedObject = obj is AnimatedItemEffect ef ? (ServerEntity)ef.Source : (ServerEntity)obj;
                                 _dequeueAt = Mouse.MOUSE_DELAY_DOUBLE_CLICK;
                                 _queuedAction = () =>
                                 {
@@ -269,7 +269,7 @@ namespace ClassicUO.Game.Scenes
                         e.Result = true;
                         GameActions.DoubleClick(item);
                         break;
-                    case MessageInfo msg when msg.Parent.Parent is Entity entity:
+                    case MessageInfo msg when msg.Parent.Parent is ServerEntity entity:
                         e.Result = true;
                         GameActions.DoubleClick(entity);
                         break;

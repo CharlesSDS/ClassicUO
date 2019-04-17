@@ -147,7 +147,7 @@ namespace ClassicUO.Game.Managers
                 int x = startX;
                 int y = startY;
 
-                Entity mob = World.Get(overheadDamage.Key);
+                ServerEntity mob = World.Get(overheadDamage.Key);
 
                 if (mob == null || mob.IsDestroyed)
                 {

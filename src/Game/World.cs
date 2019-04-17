@@ -251,7 +251,7 @@ namespace ClassicUO.Game
                 {
                     step = 3;
 
-                    Entity e = Get(item.RootContainer);
+                    ServerEntity e = Get(item.RootContainer);
 
                     step = 4;
 

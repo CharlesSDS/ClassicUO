@@ -667,7 +667,7 @@ namespace ClassicUO.Network
                         World.Player.UpdateAbilities();
                     }
 
-                    Entity cont = World.Get(item.Container);
+                    ServerEntity cont = World.Get(item.Container);
 
                     if (cont != null)
                     {
@@ -1111,7 +1111,7 @@ namespace ClassicUO.Network
 
             if (item.Container != 0)
             {
-                Entity cont = World.Get(item.Container);
+                ServerEntity cont = World.Get(item.Container);
 
                 if (cont != null)
                 {
