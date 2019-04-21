@@ -44,7 +44,7 @@ namespace ClassicUO.Game.Scenes
         private double _dequeueAt;
         private bool _inqueue;
         private Action _queuedAction;
-        private Entity _queuedObject;
+        private ServerEntity _queuedObject;
         private bool _rightMousePressed, _continueRunning, _useObjectHandles;
 
         private readonly Dictionary<SDL.SDL_Keycode, Direction> _keycodeDirection = new Dictionary<SDL.SDL_Keycode, Direction>()
@@ -214,12 +214,12 @@ namespace ClassicUO.Game.Scenes
                         obj.AddOverhead(MessageType.Label, name, 3, 0, false);
                         break;
 
-                    case AnimatedItemEffect effect when effect.Source is Entity:
-                    case Entity _:
+                    case AnimatedItemEffect effect when effect.Source is ServerEntity:
+                    case ServerEntity _:
                         if (!_inqueue)
                         {
                             _inqueue = true;
-                            _queuedObject = obj is AnimatedItemEffect ef ? (Entity)ef.Source : (Entity)obj;
+                            _queuedObject = obj is AnimatedItemEffect ef ? (ServerEntity)ef.Source : (ServerEntity)obj;
                             _dequeueAt = Mouse.MOUSE_DELAY_DOUBLE_CLICK;
                             _queuedAction = () =>
                             {
@@ -259,7 +259,7 @@ namespace ClassicUO.Game.Scenes
                     e.Result = true;
                     GameActions.DoubleClick(item);
                     break;
-                case MessageInfo msg when msg.Parent.Parent is Entity entity:
+                case MessageInfo msg when msg.Parent.Parent is ServerEntity entity:
                     e.Result = true;
                     GameActions.DoubleClick(entity);
                     break;
