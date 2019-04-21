@@ -94,7 +94,7 @@ namespace ClassicUO.Configuration
         [JsonProperty] public bool HighlightGameObjects { get; set; } = false;
         [JsonProperty] public bool HighlightMobilesByFlags { get; set; } = true;
         [JsonProperty] public bool ShowMobilesHP { get; set; } = false;
-        [JsonProperty] public int MobileHPType { get; set; } = 0;
+        [JsonProperty] public int MobileHPType { get; set; } = 0; // 0 = %, 1 = line, 2 = both
         [JsonProperty] public bool DrawRoofs { get; set; } = true;
         [JsonProperty] public bool TreeToStumps { get; set; } = false;
         [JsonProperty] public bool EnableCaveBorder { get; set; } = false;
@@ -149,7 +149,6 @@ namespace ClassicUO.Configuration
         [JsonProperty] public bool ActivateChatIgnoreHotkeysPlugins { get; set; } = true;
         [JsonProperty] public bool ActivateChatAdditionalButtons { get; set; } = true;
         [JsonProperty] public bool ActivateChatShiftEnterSupport { get; set; } = true;
-        [JsonProperty] public bool ActivateChatCompletelyHide { get; set; } = false;
 
         [JsonProperty] public int MaxFPS { get; set; } = 60;
 
@@ -220,6 +219,12 @@ namespace ClassicUO.Configuration
         [JsonProperty] public int CounterBarColumns { get; set; } = 1;
 
 
+        [JsonProperty] public bool ShadowsEnabled { get; set; } = true;
+        [JsonProperty] public int AuraUnderFeetType { get; set; } = 0; // 0 = NO, 1 = in warmode, 2 = ctrl+shift, 3 = always
+
+
+
+
         internal static string ProfilePath { get; } = Path.Combine(Engine.ExePath, "Data", "Profiles");
         internal static string DataPath { get; } = Path.Combine(Engine.ExePath, "Data");
         public void Save(List<Gump> gumps = null)
@@ -286,7 +291,7 @@ namespace ClassicUO.Configuration
 
             using (BinaryWriter writer = new BinaryWriter(File.Create(Path.Combine(path, "anchors.bin"))))
             {
-                Engine.AnchorManager.Save(writer);
+                Engine.UI.AnchorManager.Save(writer);
             }
         }
 
@@ -351,7 +356,7 @@ namespace ClassicUO.Configuration
                 {
                     using (BinaryReader reader = new BinaryReader(File.OpenRead(anchorsPath)))
                     {
-                        Engine.AnchorManager.Restore(reader, gumps);
+                        Engine.UI.AnchorManager.Restore(reader, gumps);
                     }
                 }
                 catch (Exception e)

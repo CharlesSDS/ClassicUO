@@ -88,20 +88,23 @@ namespace ClassicUO
         private ProfileManager _profileManager;
         private SceneManager _sceneManager;
         private InputManager _inputManager;
+        private AuraManager _auraManager;
         private double _statisticsTimer;
         private float _time;
         private int _totalFrames;
         private UIManager _uiManager;
         private readonly Settings _settings;
-        private AnchorManager _anchorManager;
         private DebugInfo _debugInfo;
         private bool _isRunningSlowly;
         private bool _isMaximized;
         private readonly bool _isHighDPI;
 
+        public static bool DebugFocus = false;
         public static string SettingsFile = "settings.json";
 
         public bool IsQuitted { get; private set; }
+
+        private SpriteBatch _spriteBatch;
 
         private Engine(string[] args)
         {
@@ -158,7 +161,7 @@ namespace ClassicUO
             IsFixedTimeStep = _settings.FixedTimeStep;
 
             _graphicDeviceManager = new GraphicsDeviceManager(this);
-            _graphicDeviceManager.PreparingDeviceSettings += (sender, e) => e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
+            _graphicDeviceManager.PreparingDeviceSettings += (sender, e) => e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
 
             if (_graphicDeviceManager.GraphicsDevice.Adapter.IsProfileSupported(GraphicsProfile.HiDef))
                 _graphicDeviceManager.GraphicsProfile = GraphicsProfile.HiDef;
@@ -299,8 +302,6 @@ namespace ClassicUO
             }
         }
 
-        public static AnchorManager AnchorManager => _engine._anchorManager;
-
         public static UIManager UI => _engine._uiManager;
 
         public static InputManager Input => _engine._inputManager;
@@ -310,6 +311,8 @@ namespace ClassicUO
         public static Settings GlobalSettings => _engine._settings;
 
         public static SceneManager SceneManager => _engine._sceneManager;
+
+        public static AuraManager AuraManager => _engine._auraManager;
 
         public static string ExePath { get; private set; }
 
@@ -624,7 +627,6 @@ namespace ClassicUO
             _batcher = new Batcher2D(GraphicsDevice);
             _inputManager = new InputManager();
             _uiManager = new UIManager();
-            _anchorManager = new AnchorManager();
             _profileManager = new ProfileManager();
             _sceneManager = new SceneManager();
             _debugInfo = new DebugInfo();
@@ -672,6 +674,8 @@ namespace ClassicUO
             GraphicsDevice.Textures[1] = texture0;
             GraphicsDevice.Textures[2] = texture1;
 
+            _auraManager = new AuraManager();
+            _auraManager.CreateAuraTexture();
 
             Log.Message(LogTypes.Trace, "Network calibration...");
             Log.PushIndent();
@@ -693,6 +697,8 @@ namespace ClassicUO
 
 
             UoAssist.Start();
+
+            _spriteBatch = new SpriteBatch(_graphicDeviceManager.GraphicsDevice);
 
             base.Initialize();
         }
@@ -745,6 +751,7 @@ namespace ClassicUO
             OnInputUpdate(totalms, framems);
             OnUIUpdate(totalms, framems);
             OnUpdate(totalms, framems);
+            Plugin.Tick();
             // ###############################
             Profiler.ExitContext("Update");
 

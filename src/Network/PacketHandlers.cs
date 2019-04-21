@@ -591,6 +591,9 @@ namespace ClassicUO.Network
             World.Player.Direction = direction;
             World.Player.AddToTile();
 
+            World.RangeSize.X = x;
+            World.RangeSize.Y = y;
+
             if (Engine.Profile.Current.UseCustomLightLevel)
                 World.Light.Overall = Engine.Profile.Current.LightLevel;
 
@@ -723,6 +726,8 @@ namespace ClassicUO.Network
             World.Player.CloseBank();
             World.Player.Walker.WalkingFailed = false;
             World.Player.Position = new Position(x, y, z);
+            World.RangeSize.X = x;
+            World.RangeSize.Y = y;
             World.Player.Direction = dir;
             World.Player.Walker.DenyWalk(0xFF, -1, -1, -1);
             World.Player.Walker.ResendPacketSended = false;
@@ -2021,7 +2026,10 @@ namespace ClassicUO.Network
             uint serial = p.ReadUInt();
             bool oldpacket = p.ID == 0x93;
             bool editable = p.ReadBool();
-            p.Skip(1);
+            if(!oldpacket)
+                editable = p.ReadBool();
+            else
+                p.Skip(1);
             UIManager ui = Engine.UI;
             BookGump bgump = ui.GetByLocalSerial<BookGump>(serial);
 
@@ -2166,6 +2174,9 @@ namespace ClassicUO.Network
             Mobile mobile = World.Mobiles.Get(p.ReadUInt());
 
             if (mobile == null) return;
+
+            int oldPerc = mobile.Hits * 100 / (mobile.HitsMax == 0 ? 1 : mobile.HitsMax);
+
             mobile.HitsMax = p.ReadUShort();
             mobile.Hits = p.ReadUShort();
             mobile.ProcessDelta();
@@ -2173,6 +2184,29 @@ namespace ClassicUO.Network
             if (mobile == World.Player)
             {
                 UoAssist.SignalHits();
+            }
+
+            if (Engine.Profile.Current.ShowMobilesHP)
+            {
+                int type = Engine.Profile.Current.MobileHPType;
+
+                if (type == 0 || type == 2)
+                {
+                    int newPerc = mobile.Hits * 100 / (mobile.HitsMax == 0 ? 1 : mobile.HitsMax);
+
+                    if (oldPerc != newPerc)
+                    {
+                        Hue[] hues = HealthPercentageHues.Hues;
+
+                        int index = (newPerc + 5) / 10 % hues.Length;
+
+                        if (index >= 0 && index < hues.Length)
+                        {
+                            mobile.AddOverhead(MessageType.Label, $"[{newPerc}%]", 3, hues[index], true, ishealthmessage: true);
+                        }
+                    }
+                }
+                    
             }
         }
 

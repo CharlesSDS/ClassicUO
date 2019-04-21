@@ -40,7 +40,6 @@ namespace ClassicUO.Game.GameObjects
         private Tile _tile;
         private Vector3 _screenPosition;
 
-        public OverheadMessage _overheadMessageContainer;
 
         protected GameObject()
         {
@@ -51,6 +50,7 @@ namespace ClassicUO.Game.GameObjects
         public GameObject Right { get; set; }
 
         protected virtual bool CanCreateOverheads => true;
+        public OverheadMessage OverheadMessageContainer { get; private set; }
 
         public Vector3 ScreenPosition => _screenPosition;
 
@@ -160,7 +160,7 @@ namespace ClassicUO.Game.GameObjects
 
         public virtual void Update(double totalMS, double frameMS)
         {
-            _overheadMessageContainer?.Update();
+            OverheadMessageContainer?.Update();
         }
 
         public void AddToTile(int x, int y)
@@ -214,16 +214,16 @@ namespace ClassicUO.Game.GameObjects
             AddOverhead(type, message, Engine.Profile.Current.ChatFont, Engine.Profile.Current.SpeechHue, true);
         }
 
-        public void AddOverhead(MessageType type, string text, byte font, Hue hue, bool isunicode, float timeToLive = 0.0f)
+        public void AddOverhead(MessageType type, string text, byte font, Hue hue, bool isunicode, float timeToLive = 0.0f, bool ishealthmessage = false)
         {
             if (string.IsNullOrEmpty(text))
                 return;
 
 
-            if (_overheadMessageContainer == null)
-                _overheadMessageContainer = new OverheadMessage(this);
+            if (OverheadMessageContainer == null)
+                OverheadMessageContainer = new OverheadMessage(this);
 
-            _overheadMessageContainer.AddMessage(text, hue, font, isunicode, type);
+            OverheadMessageContainer.AddMessage(text, hue, font, isunicode, type, ishealthmessage);
 
             //OverheadAdded?.Raise(this);
         }
@@ -245,7 +245,7 @@ namespace ClassicUO.Game.GameObjects
             _tile?.RemoveGameObject(this);
             _tile = null;
 
-            _overheadMessageContainer?.Destroy();
+            OverheadMessageContainer?.Destroy();
            
             Texture = null;
         }

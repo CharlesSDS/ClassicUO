@@ -83,8 +83,7 @@
     <ApplicationIcon>cuoicon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="cuoapi, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="cuoapi, Version=1.2.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>libs\api\cuoapi.dll</HintPath>
     </Reference>
     <Reference Include="FNA, Version=18.12.0.0, Culture=neutral, processorArchitecture=AMD64">
@@ -135,6 +134,7 @@
     <Compile Include="Game\Data\EntityFlags.cs" />
     <Compile Include="Game\Data\GraphicEffectBlendMode.cs" />
     <Compile Include="Game\Data\GraphicEffectType.cs" />
+    <Compile Include="Game\Data\HealthPercentageHues.cs" />
     <Compile Include="Game\Data\Layers.cs" />
     <Compile Include="Game\Data\LightColors.cs" />
     <Compile Include="Game\Data\MapMessageType.cs" />
@@ -156,7 +156,9 @@
     <Compile Include="Game\GameObjects\OverheadMessage.cs" />
     <Compile Include="Game\ItemHold.cs" />
     <Compile Include="Game\Managers\AnchorManager.cs" />
+    <Compile Include="Game\Managers\AuraManager.cs" />
     <Compile Include="Game\Managers\CorpseManager.cs" />
+    <Compile Include="Game\Managers\HealthLinesManager.cs" />
     <Compile Include="Game\Managers\HotkeysManager.cs" />
     <Compile Include="Game\Managers\MacroManager.cs" />
     <Compile Include="Game\Managers\AudioManager.cs" />
@@ -173,6 +175,7 @@
     <Compile Include="Game\UI\Controls\HotkeyControl.cs" />
     <Compile Include="Game\UI\Controls\MacroControl.cs" />
     <Compile Include="Game\UI\Controls\MultiLineBox.cs" />
+    <Compile Include="Game\UI\Controls\MultiSelectionShrinkbox.cs" />
     <Compile Include="Game\UI\Controls\NiceButton.cs" />
     <Compile Include="Game\UI\Controls\TextureControl.cs" />
     <Compile Include="Game\UI\Gumps\BulletinBoardGump.cs" />

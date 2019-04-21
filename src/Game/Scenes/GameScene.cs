@@ -57,6 +57,7 @@ namespace ClassicUO.Game.Scenes
         private OverheadManager _overheadManager;
         private HotkeysManager _hotkeysManager;
         private MacroManager _macroManager;
+        private HealthLinesManager _healthLinesManager;
         private IGameEntity _selectedObject;
         private UseItemQueue _useItemQueue = new UseItemQueue();
         private bool _alphaChanged;
@@ -176,6 +177,7 @@ namespace ClassicUO.Game.Scenes
             _macroManager = new MacroManager(Engine.Profile.Current.Macros);
             _mousePicker = new MousePicker();
             _mouseOverList = new MouseOverList(_mousePicker);
+            _healthLinesManager = new HealthLinesManager();
 
             WorldViewportGump viewport = new WorldViewportGump(this);
             
@@ -188,26 +190,30 @@ namespace ClassicUO.Game.Scenes
 
             GameActions.Initialize(PickupItemBegin);
 
-            _viewPortGump.MouseDown += OnMouseDown;
-            _viewPortGump.MouseUp += OnMouseUp;
-            _viewPortGump.MouseDoubleClick += OnMouseDoubleClick;
-            _viewPortGump.MouseOver += OnMouseMove;
-            _viewPortGump.MouseWheel += (sender, e) =>
-            {
-                if (!Engine.Profile.Current.EnableScaleZoom || !Input.Keyboard.Ctrl)
-                    return;
 
-                if (e.Direction == MouseEvent.WheelScrollDown)
-                    ScalePos++;
-                else
-                    ScalePos--;
+            // LEFT
+            Engine.Input.LeftMouseButtonDown += OnLeftMouseDown;
+            Engine.Input.LeftMouseButtonUp += OnLeftMouseUp;
+            Engine.Input.LeftMouseDoubleClick += OnLeftMouseDoubleClick;
 
-                if (Engine.Profile.Current.SaveScaleAfterClose)
-                    Engine.Profile.Current.ScaleZoom = Scale;
-            };
+            // RIGHT
+            Engine.Input.RightMouseButtonDown += OnRightMouseDown;
+            Engine.Input.RightMouseButtonUp += OnRightMouseUp;
+            Engine.Input.RightMouseDoubleClick += OnRightMouseDoubleClick;
 
+            // MOUSE MOVING
+            Engine.Input.MouseMoving += OnMouseMoving;
+
+            // MOUSE WHEEL
+            Engine.Input.MouseWheel += OnMouseWheel;
+
+            // MOUSE DRAG
+            Engine.Input.DragBegin += OnMouseDragBegin;
+
+            // KEYBOARD
             Engine.Input.KeyDown += OnKeyDown;
             Engine.Input.KeyUp += OnKeyUp;
+
 
             CommandManager.Initialize();
             NetClient.Socket.Disconnected += SocketOnDisconnected;
@@ -322,10 +328,24 @@ namespace ClassicUO.Game.Scenes
             Engine.UI?.Clear();
             World.Clear();
 
-            _viewPortGump.MouseDown -= OnMouseDown;
-            _viewPortGump.MouseUp -= OnMouseUp;
-            _viewPortGump.MouseDoubleClick -= OnMouseDoubleClick;
-            _viewPortGump.DragBegin -= OnMouseDragBegin;
+            // LEFT
+            Engine.Input.LeftMouseButtonDown -= OnLeftMouseDown;
+            Engine.Input.LeftMouseButtonUp -= OnLeftMouseUp;
+            Engine.Input.LeftMouseDoubleClick -= OnLeftMouseDoubleClick;
+
+            // RIGHT
+            Engine.Input.RightMouseButtonDown -= OnRightMouseDown;
+            Engine.Input.RightMouseButtonUp -= OnRightMouseUp;
+            Engine.Input.RightMouseDoubleClick -= OnRightMouseDoubleClick;
+
+            // MOUSE MOVING
+            Engine.Input.MouseMoving -= OnMouseMoving;
+
+            // MOUSE WHEEL
+            Engine.Input.MouseWheel -= OnMouseWheel;
+
+            // MOUSE DRAG
+            Engine.Input.DragBegin -= OnMouseDragBegin;
 
             Engine.Input.KeyDown -= OnKeyDown;
             Engine.Input.KeyUp -= OnKeyUp;
@@ -421,9 +441,13 @@ namespace ClassicUO.Game.Scenes
                     }
                     else if (GameObjectHelper.TryGetStaticData(lightObject, out StaticTiles data))
                         light.ID = data.Layer;
+                    else if (obj is Mobile mobile)
+                    {
+                        light.ID = 1;
+                    }
                     else
                     {
-                        // not handled
+                        return;
                     }
                 }
 
@@ -723,7 +747,7 @@ namespace ClassicUO.Game.Scenes
                 {
                     ref SpriteVertex v = ref vertex[j];
                     v.Hue.X = l.Color;
-                    v.Hue.Y = 13;
+                    v.Hue.Y = ShaderHuesTraslator.SHADER_LIGHTS;
                     v.Hue.Z = 0f;
                 }
                 batcher.DrawSprite(texture, vertex);
@@ -736,6 +760,8 @@ namespace ClassicUO.Game.Scenes
 
         public void DrawOverheads(Batcher2D batcher, int x, int y)
         {
+            _healthLinesManager.Draw(batcher, Scale);
+
             //batcher.SetBlendState(_blendText);
             _overheadManager.Draw(batcher, _mouseOverList, x, y);
            // batcher.SetBlendState(null);

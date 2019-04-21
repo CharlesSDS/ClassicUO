@@ -31,6 +31,7 @@ using ClassicUO.Input;
 using ClassicUO.IO;
 using ClassicUO.IO.Resources;
 using ClassicUO.Renderer;
+using ClassicUO.Utility;
 using ClassicUO.Utility.Logging;
 
 using Microsoft.Xna.Framework;
@@ -95,7 +96,7 @@ namespace ClassicUO.Game.GameObjects
                     hue = targetColor;
             }
 
-            bool drawShadow = !IsDead && !IsHidden;
+            bool drawShadow = !IsDead && !IsHidden && Engine.Profile.Current.ShadowsEnabled;
 
             DrawBody(batcher, position, objectList, dir, out int drawX, out int drawY, out int drawCenterY, ref rect, ref mirror, hue, drawShadow);
 
@@ -154,7 +155,8 @@ namespace ClassicUO.Game.GameObjects
                     return;
 
                 drawCenterY = frame.CenterY;
-                drawY = drawCenterY + (int)(Offset.Z / 4) - 22 - (int)(Offset.Y - Offset.Z - 3);
+                int yOff = (int) (Offset.Z / 4) - 22 - (int) (Offset.Y - Offset.Z - 3);
+                drawY = drawCenterY + yOff;
 
                 if (IsFlipped)
                     drawX = -22 + (int)Offset.X;
@@ -190,6 +192,15 @@ namespace ClassicUO.Game.GameObjects
                 Bounds.Width = frame.Width;
                 Bounds.Height = frame.Height;
 
+
+
+                 
+                if (Engine.AuraManager.IsEnabled)
+                    Engine.AuraManager.Draw(batcher,
+                                            IsFlipped ? (int)position.X + drawX + 44 : (int)position.X - drawX,
+                                            (int)position.Y - yOff, Notoriety.GetHue(NotorietyFlag));
+
+
                 if (IsHuman && Equipment[(int) Layer.Mount] != null)
                 {
                     if (shadow)
@@ -223,11 +234,11 @@ namespace ClassicUO.Game.GameObjects
                     position.Z -= DELTA_SHADOW;
                 }
 
-
                
                 if (World.Player.IsDead && Engine.Profile.Current.EnableBlackWhiteEffect)
                 {
-                    HueVector = new Vector3(Constants.DEAD_RANGE_COLOR, 1, HueVector.Z);
+                    HueVector.X = Constants.DEAD_RANGE_COLOR;
+                    HueVector.Y = 1;
                 }
                 else
                 {
@@ -252,17 +263,34 @@ namespace ClassicUO.Game.GameObjects
                         if (hue == 0)
                         {
                             if (direction.Address != direction.PatchedAddress)
-                                hue = FileManager.Animations.DataIndex[FileManager.Animations.AnimID].Color;
+                            {
+                                ref var idx = ref FileManager.Animations.DataIndex[FileManager.Animations.AnimID];
+                                hue = idx.Color;
+
+                                if (hue != 0)
+                                {
+                                    isPartial = true;
+
+                                    //uint flag = idx.Flags & 0x80000000;
+
+                                    //if (flag != 0)
+                                    //{
+                                    //    Engine.SceneManager.GetScene<GameScene>()
+                                    //          .AddLight(this, this, (int)(IsFlipped ? (position.X + Bounds.X) : position.X - Bounds.X + frame.CenterX) , (int)position.Y - Bounds.Y + 44);
+                                    //}
+                                }
+                            }
                         }
                     }
 
-                    ShaderHuesTraslator.GetHueVector(ref HueVector, hue, !IsHidden && isPartial, 0, false);
+                    ShaderHuesTraslator.GetHueVector(ref HueVector, hue, !IsHidden && isPartial, 0);
                 }
 
                 base.Draw(batcher, position, objecList);
                 Pick(frame, Bounds, position, objecList);
             }
         }
+
 
         private void DrawEquipment(Batcher2D batcher, Vector3 position, MouseOverList objectList, byte dir, ref int drawX, ref int drawY, ref int drawCenterY, ref Rectangle rect, ref bool mirror, Hue hue)
         {
@@ -413,7 +441,7 @@ namespace ClassicUO.Game.GameObjects
                     HueVector.Y = 1;
                 }
                 else
-                    ShaderHuesTraslator.GetHueVector(ref HueVector, IsHidden ? 0x038E : hue, partial, 0, false);
+                    ShaderHuesTraslator.GetHueVector(ref HueVector, IsHidden ? 0x038E : hue, partial, 0);
 
                 base.Draw(batcher, position, objectList);
                 Pick(frame, Bounds, position, objectList);
