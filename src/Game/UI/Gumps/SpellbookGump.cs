@@ -664,7 +664,7 @@ namespace ClassicUO.Game.UI.Gumps
             Engine.SceneManager.CurrentScene.Audio.PlaySound(0x0055);
         }
 
-        private void OnEntityUpdate(Entity entity)
+        private void OnEntityUpdate(ServerEntity entity)
         {
             if (entity == null) 
                 return;

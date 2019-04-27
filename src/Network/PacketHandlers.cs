@@ -283,7 +283,7 @@ namespace ClassicUO.Network
             if (World.Player == null)
                 return;
 
-            Entity entity = World.Get(p.ReadUInt());
+            ServerEntity entity = World.Get(p.ReadUInt());
 
             if (entity != null)
             {
@@ -2830,7 +2830,7 @@ namespace ClassicUO.Network
                 case 0x22:
                     p.Skip(1);
 
-                    Entity en = World.Get(p.ReadUInt());
+                    ServerEntity en = World.Get(p.ReadUInt());
 
                     if (en != null)
                     {
