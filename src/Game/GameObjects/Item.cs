@@ -697,17 +697,15 @@ namespace ClassicUO.Game.GameObjects
                         }
                     default: //lightbrown/horse2
                         {
-                            graphic = 0x00C8;
-
+                            
+                            if (ItemData.AnimID != 0)
+                                graphic = ItemData.AnimID;
+                            else
+                                graphic = 0x00C8;
                             break;
                         }
                 }
 
-                /* TODO: maybe this code is wrong. The animID in this case doesn't work like expected.
-                
-                if (ItemData.AnimID != 0)
-                    graphic = ItemData.AnimID;
-                */
             }
             else if (IsCorpse)
                 return Amount;
@@ -743,7 +741,6 @@ namespace ClassicUO.Game.GameObjects
             return needUpdate;
         }
 
-
         public override void ProcessAnimation()
         {
             if (IsCorpse)
@@ -753,19 +750,26 @@ namespace ClassicUO.Game.GameObjects
                 if (LastAnimationChangeTime < Engine.Ticks)
                 {
                     sbyte frameIndex = (sbyte) (AnimIndex + 1);
-                    Graphic id = GetGraphicForAnimation();
+                    ushort id = GetGraphicForAnimation();
+
+                    var corpseGraphic = FileManager.Animations.DataIndex[id].CorpseGraphic;
+
+                    if (corpseGraphic != id && corpseGraphic != 0)
+                    {
+                        id = corpseGraphic;
+                    }
+
                     bool mirror = false;
                     FileManager.Animations.GetAnimDirection(ref dir, ref mirror);
 
                     if (id < Constants.MAX_ANIMATIONS_DATA_INDEX_COUNT && dir < 5)
                     {
-                        int animGroup = FileManager.Animations.GetDieGroupIndex(id, UsedLayer);
+                        byte animGroup = FileManager.Animations.GetDieGroupIndex(id, UsedLayer);
 
-                        bool istotallyUOP = FileManager.Animations.DataIndex[id].IsUOP && FileManager.Animations.UOPDataIndex[id].Groups[animGroup].UOPAnimData.Offset != 0;
-
-                        ref AnimationDirection direction = ref istotallyUOP ? ref FileManager.Animations.UOPDataIndex[id].Groups[animGroup].Direction[dir] : ref FileManager.Animations.DataIndex[id].Groups[animGroup].Direction[dir];
+                        ushort hue = 0;
+                        ref var direction = ref FileManager.Animations.GetCorpseAnimationGroup(ref id, ref animGroup, ref hue).Direction[FileManager.Animations.Direction];
                         FileManager.Animations.AnimID = id;
-                        FileManager.Animations.AnimGroup = (byte)animGroup;
+                        FileManager.Animations.AnimGroup = animGroup;
                         FileManager.Animations.Direction = dir;
                         if ((direction.FrameCount == 0 || direction.FramesHashes == null))
                             FileManager.Animations.LoadDirectionGroup(ref direction);

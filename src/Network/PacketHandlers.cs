@@ -283,15 +283,15 @@ namespace ClassicUO.Network
             if (World.Player == null)
                 return;
 
-            Mobile mobile = World.Mobiles.Get(p.ReadUInt());
+            Entity entity = World.Get(p.ReadUInt());
 
-            if (mobile != null)
+            if (entity != null)
             {
                 ushort damage = p.ReadUShort();
 
                 Engine.SceneManager.GetScene<GameScene>()
                       .Overheads
-                      .AddDamage(mobile,
+                      .AddDamage(entity,
                                  damage
                                 );
                 //new DamageOverhead(mobile, damage.ToString(), hue: (Hue)(mobile == World.Player ? 0x0034 : 0x0021), font: 3, isunicode: false, timeToLive: 1500));
@@ -357,7 +357,8 @@ namespace ClassicUO.Network
                     {
                         World.Player.WeightMax = p.ReadUShort();
                         byte race = p.ReadByte();
-                        if (race <= 0) race = 1;
+                        if (race == 0)
+                            race = 1;
                         World.Player.Race = (RaceType) race;
                     }
                     else
@@ -562,7 +563,7 @@ namespace ClassicUO.Network
             {
                 item.AllowedToDraw = false;
 
-                World.AddEffect(new AnimatedItemEffect(item.Serial, item.Graphic, item.Hue, -1));
+                World.AddEffect(new AnimatedItemEffect(item.Serial, x, y, z, item.Graphic, item.Hue, -1));
             }
             if (item.OnGround)
                 item.AddToTile();
@@ -631,8 +632,8 @@ namespace ClassicUO.Network
 
             if (entity != null)
             {
-                //entity.Graphic = graphic;
-                entity.Name = name;
+                if (string.IsNullOrEmpty(entity.Name))
+                    entity.Name = name;
                 entity.ProcessDelta();
             }
 
@@ -2011,7 +2012,10 @@ namespace ClassicUO.Network
 
                 if (p.ID == 0xF5)
                     facet = p.ReadUShort();
-                gump.SetMapTexture(FileManager.Multimap.LoadFacet(facet, width, height, startX, startY, endX, endY));
+                if(FileManager.Multimap.HasFacet(facet))
+                    gump.SetMapTexture(FileManager.Multimap.LoadFacet(facet, width, height, startX, startY, endX, endY));
+                else
+                    gump.SetMapTexture(FileManager.Multimap.LoadMap(width, height, startX, startY, endX, endY));
             }
             else
             {
@@ -2384,9 +2388,10 @@ namespace ClassicUO.Network
             if (corpseSerial.IsValid)
                 World.CorpseManager.Add(corpseSerial, serial, owner.Direction, running != 0);
 
-            byte group = FileManager.Animations.GetDieGroupIndex(owner.Graphic, running != 0);
-
+            byte group = FileManager.Animations.GetDieGroupIndex(owner.Graphic, running != 0, true);
             owner.SetAnimation(group, 0, 5, 1);
+            owner.ClearSteps();
+            owner.LastStepTime = Engine.Ticks;
         }
 
         private static void OpenGump(Packet p)
@@ -2825,15 +2830,15 @@ namespace ClassicUO.Network
                 case 0x22:
                     p.Skip(1);
 
-                    Mobile mobile = World.Mobiles.Get(p.ReadUInt());
+                    Entity en = World.Get(p.ReadUInt());
 
-                    if (mobile != null)
+                    if (en != null)
                     {
                         byte damage = p.ReadByte();
 
                         Engine.SceneManager.GetScene<GameScene>()
                               .Overheads
-                              .AddDamage(mobile,damage);
+                              .AddDamage(en,damage);
 
 
                         //new Mess(mobile,
@@ -3356,7 +3361,7 @@ namespace ClassicUO.Network
             if (item.ItemData.IsAnimated)
             {
                 item.AllowedToDraw = false;
-                World.AddEffect(new AnimatedItemEffect(item.Serial, item.Graphic, item.Hue, -1));
+                World.AddEffect(new AnimatedItemEffect(item.Serial, position.X, position.Y, position.Z, item.Graphic, item.Hue, -1));
             }
 
             if (item.OnGround)

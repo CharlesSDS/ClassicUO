@@ -24,33 +24,46 @@ using ClassicUO.Game.Managers;
 
 namespace ClassicUO.Game.Data
 {
-    internal static class SpellsBushido
+    internal static class SpellsBardic
     {
         private static readonly Dictionary<int, SpellDefinition> _spellsDict;
         internal static int MaxSpellCount => _spellsDict.Count;
+        internal static string GetUsedSkillName(int spellid)
+        {
+            int div = (MaxSpellCount * 3) >> 3;
+            if (div <= 0)
+                div = 1;
+            int group = spellid / div;
 
-        static SpellsBushido()
+            if (group == 0)
+                return "Provocation";
+            else if (group == 1)
+                return "Peacemaking";
+            return "Discordance";
+        }
+
+        static SpellsBardic()
         {
             _spellsDict = new Dictionary<int, SpellDefinition>
             {
                 // Spell List
                 {
-                    1, new SpellDefinition("Honorable Execution", 401, 0x5420, string.Empty, 0, 25, TargetType.Harmful, Reagents.None)
+                    1, new SpellDefinition("Inspire", 701, 0x945, 0x945, "Uus Por", 30, 90, 8, TargetType.Beneficial, Reagents.None)
                 },
                 {
-                    2, new SpellDefinition("Confidence", 402, 0x5421, string.Empty, 10, 25, TargetType.Beneficial, Reagents.None)
+                    2, new SpellDefinition("Invigorate", 702, 0x946, 0x946, "An Zu", 30, 90, 8, TargetType.Beneficial, Reagents.None)
                 },
                 {
-                    3, new SpellDefinition("Evasion", 403, 0x5422, string.Empty, 10, 60, TargetType.Beneficial, Reagents.None)
+                    3, new SpellDefinition("Resilience", 703, 0x947, 0x947, "Kal Mani Tym", 30, 90, 8, TargetType.Beneficial, Reagents.None)
                 },
                 {
-                    4, new SpellDefinition("Counter Attack", 404, 0x5423, string.Empty, 5, 40, TargetType.Harmful, Reagents.None)
+                    4, new SpellDefinition("Perseverance", 704, 0x948,0x948, "Uus Jux Sanct", 30, 90, 8, TargetType.Beneficial, Reagents.None)
                 },
                 {
-                    5, new SpellDefinition("Lightning Strike", 405, 0x5424, string.Empty, 10, 50, TargetType.Harmful, Reagents.None)
+                    5, new SpellDefinition("Tribulation", 705, 0x949,0x949, "In Jux Hur Rel", 30, 90, 16, TargetType.Harmful, Reagents.None)
                 },
                 {
-                    6, new SpellDefinition("Momentum Strike", 406, 0x5425, string.Empty, 10, 70, TargetType.Harmful, Reagents.None)
+                    6, new SpellDefinition("Despair", 706, 0x94A,0x94A, "Kal Des Mani Tym", 30, 90, 18, TargetType.Harmful, Reagents.None)
                 }
             };
         }

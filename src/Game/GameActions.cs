@@ -36,14 +36,14 @@ namespace ClassicUO.Game
 {
     internal static class GameActions
     {
-        private static Action<Item, int, int, int?> _pickUpAction;
+        private static Func<Item, int, int, int?, bool> _pickUpAction;
 
         public static int LastSpellIndex { get; set; } = 1;
         public static int LastSkillIndex { get; set; } = 1;
         
         public static Serial LastObject { get; set; } = Serial.INVALID;
 
-        internal static void Initialize(Action<Item, int, int, int?> onPickUpAction)
+        internal static void Initialize(Func<Item, int, int, int?, bool> onPickUpAction)
         {
             _pickUpAction = onPickUpAction;
         }
@@ -117,7 +117,7 @@ namespace ClassicUO.Game
         public static void Print(string message, ushort hue = 946, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal, bool unicode = true)
             => Print(null, message, hue, type, font, unicode);
 
-        public static void Print(ServerEntity entity, string message, ushort hue = 946, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal, bool unicode = true)
+        public static void Print(Entity entity, string message, ushort hue = 946, MessageType type = MessageType.Regular, MessageFont font = MessageFont.Normal, bool unicode = true)
             => Chat.HandleMessage(entity, message, entity != null ? entity.Name : "System", hue, type, font, unicode, "ENU");
 
         public static void SayParty(string message)
@@ -216,44 +216,6 @@ namespace ClassicUO.Game
         public static void RequestMobileStatus(Serial serial)
         {
             Socket.Send(new PStatusRequest(serial));
-        }
-
-        public static void TargetCancel(CursorTarget type, Serial cursorID, byte cursorType)
-        {
-            Socket.Send(new PTargetCancel(type, cursorID, cursorType));
-        }
-
-        public static void TargetObject(Serial entity, Serial cursorID, byte cursorType)
-        {
-            ServerEntity e = World.Get(entity);
-            if (e == null)
-                return;
-
-            if (Engine.Profile.Current.EnabledCriminalActionQuery && TargetManager.TargeringType == TargetType.Harmful)
-            {
-                Mobile m = World.Mobiles.Get(entity);
-
-                if (m != null && (World.Player.NotorietyFlag == NotorietyFlag.Innocent || World.Player.NotorietyFlag == NotorietyFlag.Ally) && m.NotorietyFlag == NotorietyFlag.Innocent && m != World.Player)
-                {
-
-                    QuestionGump messageBox = new QuestionGump("This may flag\nyou criminal!",
-                                                               s =>
-                                                               {
-                                                                   if (s)
-                                                                       Socket.Send(new PTargetObject(entity, e.Graphic, e.X, e.Y, e.Z, cursorID, cursorType));
-                                                               });
-
-                    Engine.UI.Add(messageBox);
-                    return;
-                }
-            }
-
-            Socket.Send(new PTargetObject(entity, e.Graphic, e.X, e.Y, e.Z, cursorID, cursorType));
-        }
-
-        public static void TargetXYZ(ushort x, ushort y, short z, ushort modelNumber, Serial cursorID, byte targetType)
-        {
-            Socket.Send(new PTargetXYZ(x, y, z, modelNumber, cursorID, targetType));
         }
 
         public static void CastSpellFromBook(int index, Serial bookSerial)

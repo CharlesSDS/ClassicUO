@@ -117,29 +117,26 @@ namespace ClassicUO.Game.GameObjects
             return true;
         }
 
-        private void DrawBody(Batcher2D batcher, Vector3 position, MouseOverList objecList, byte dir, out int drawX, out int drawY, out int drawCenterY, ref Rectangle rect, ref bool mirror, Hue hue, bool shadow)
+        private void DrawBody(Batcher2D batcher, Vector3 position, MouseOverList objecList, byte dir, out int drawX, out int drawY, out int drawCenterY, ref Rectangle rect, ref bool mirror, ushort hue, bool shadow)
         {
-            Graphic graphic = GetGraphicForAnimation();
-            byte animGroup = Mobile.GetGroupForAnimation(this, graphic);
+            ushort graphic = GetGraphicForAnimation();
+            byte animGroup = Mobile.GetGroupForAnimation(this, graphic, true);
             sbyte animIndex = AnimIndex;
             drawX = drawY = drawCenterY = 0;
 
 
+            ref var direction = ref FileManager.Animations.GetBodyAnimationGroup(ref graphic, ref animGroup, ref hue, true).Direction[dir];
+
             FileManager.Animations.AnimID = graphic;
             FileManager.Animations.AnimGroup = animGroup;
             FileManager.Animations.Direction = dir;
-
-            ref AnimationDirection direction = ref FileManager.Animations.DataIndex[FileManager.Animations.AnimID].Groups[FileManager.Animations.AnimGroup].Direction[FileManager.Animations.Direction];
-
-            if (direction.IsUOP)
-                direction = ref FileManager.Animations.UOPDataIndex[FileManager.Animations.AnimID].Groups[FileManager.Animations.AnimGroup].Direction[FileManager.Animations.Direction];
-
+      
             if ((direction.FrameCount == 0 || direction.FramesHashes == null) && !FileManager.Animations.LoadDirectionGroup(ref direction))
                 return;
 
             direction.LastAccessTime = Engine.Ticks;
             int fc = direction.FrameCount;
-            if (fc > 0 && animIndex >= fc)
+            if (fc != 0 && animIndex >= fc)
                 animIndex = 0;
 
             if (animIndex < direction.FrameCount)
@@ -257,31 +254,7 @@ namespace ClassicUO.Game.GameObjects
 
 
                     if (hue == 0)
-                    {
-                        hue = Hue;
-                     
-                        if (hue == 0)
-                        {
-                            if (direction.Address != direction.PatchedAddress)
-                            {
-                                ref var idx = ref FileManager.Animations.DataIndex[FileManager.Animations.AnimID];
-                                hue = idx.Color;
-
-                                if (hue != 0)
-                                {
-                                    isPartial = true;
-
-                                    //uint flag = idx.Flags & 0x80000000;
-
-                                    //if (flag != 0)
-                                    //{
-                                    //    Engine.SceneManager.GetScene<GameScene>()
-                                    //          .AddLight(this, this, (int)(IsFlipped ? (position.X + Bounds.X) : position.X - Bounds.X + frame.CenterX) , (int)position.Y - Bounds.Y + 44);
-                                    //}
-                                }
-                            }
-                        }
-                    }
+                        hue = Hue;                     
 
                     ShaderHuesTraslator.GetHueVector(ref HueVector, hue, !IsHidden && isPartial, 0);
                 }
@@ -302,7 +275,7 @@ namespace ClassicUO.Game.GameObjects
             }
         }
 
-        private void DrawLayer(Batcher2D batcher, Vector3 position, MouseOverList objectList, byte dir, ref int drawX, ref int drawY, ref int drawCenterY, Layer layer, ref Rectangle rect, ref bool mirror, Hue hue)
+        private void DrawLayer(Batcher2D batcher, Vector3 position, MouseOverList objectList, byte dir, ref int drawX, ref int drawY, ref int drawCenterY, Layer layer, ref Rectangle rect, ref bool mirror, ushort hue)
         {
             Item item = Equipment[(int)layer];
 
@@ -317,17 +290,14 @@ namespace ClassicUO.Game.GameObjects
                 return;
 
             EquipConvData? convertedItem = null;
-
-            if (hue == 0)
-                hue = item.Hue;
-
-            Graphic graphic;
+        
+            ushort graphic;
             int mountHeight = 0;
 
             if (layer == Layer.Mount && IsHuman)
             {
                 graphic = item.GetGraphicForAnimation();
-                mountHeight = FileManager.Animations.DataIndex[graphic].MountedHeightOffset;
+                mountHeight = FileManager.Animations.DataIndex[graphic].MountedHeightOffset;        
             }
             else if (item.ItemData.AnimID != 0)
             {
@@ -346,22 +316,20 @@ namespace ClassicUO.Game.GameObjects
                 return;
 
 
-            bool isequip = layer != Layer.Mount;
-            byte animGroup = Mobile.GetGroupForAnimation(this, graphic, isequip);
+            byte animGroup = Mobile.GetGroupForAnimation(this, graphic);
             sbyte animIndex = AnimIndex;
-
 
             FileManager.Animations.AnimID = graphic;
             FileManager.Animations.AnimGroup = animGroup;
             FileManager.Animations.Direction = dir;
 
-            ref AnimationDirection direction = ref FileManager.Animations.DataIndex[FileManager.Animations.AnimID].Groups[FileManager.Animations.AnimGroup].Direction[FileManager.Animations.Direction];
+           ref var direction = ref FileManager.Animations.GetBodyAnimationGroup(ref graphic, ref animGroup, ref hue, false).Direction[dir];
 
-            if (direction.IsUOP && !isequip)
-                direction = ref FileManager.Animations.UOPDataIndex[FileManager.Animations.AnimID].Groups[FileManager.Animations.AnimGroup].Direction[FileManager.Animations.Direction];
-
-            if ((direction.FrameCount == 0 || direction.FramesHashes == null) && !FileManager.Animations.LoadDirectionGroup(ref direction, isequip))
+            if ((direction.FrameCount == 0 || direction.FramesHashes == null) && !FileManager.Animations.LoadDirectionGroup(ref direction))
                 return;
+
+            if (hue == 0)
+                hue = item.Hue;
 
             direction.LastAccessTime = Engine.Ticks;
             int fc = direction.FrameCount;
@@ -380,8 +348,8 @@ namespace ClassicUO.Game.GameObjects
 
                 if (hue == 0)
                 {
-                    if (direction.Address != direction.PatchedAddress)
-                        hue = FileManager.Animations.DataIndex[FileManager.Animations.AnimID].Color;
+                    //if (direction.Address != direction.PatchedAddress)
+                    //    hue = FileManager.Animations.DataIndex[FileManager.Animations.AnimID].Color;
                     if (hue == 0 && convertedItem.HasValue)
                         hue = convertedItem.Value.Color;
                 }

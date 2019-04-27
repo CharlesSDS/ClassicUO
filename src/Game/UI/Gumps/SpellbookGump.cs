@@ -102,7 +102,7 @@ namespace ClassicUO.Game.UI.Gumps
         {
             Clear();
             _pageCornerLeft = _pageCornerRight = null;
-            GetBookInfo(_spellBookType, out Graphic bookGraphic, out Graphic minimizedGraphic, out Graphic iconStartGraphic, out int maxSpellsCount, out int spellIndexOffset, out int spellsOnPage, out int dictionaryPagesCount);
+            GetBookInfo(_spellBookType, out Graphic bookGraphic, out Graphic minimizedGraphic, out Graphic iconStartGraphic, out int maxSpellsCount, out int spellsOnPage, out int dictionaryPagesCount);
             Add(new GumpPic(0, 0, bookGraphic, 0));
             Add(_pageCornerLeft = new GumpPic(50, 8, 0x08BB, 0));
             _pageCornerLeft.LocalSerial = 0;
@@ -131,12 +131,9 @@ namespace ClassicUO.Game.UI.Gumps
             _maxPage = (dictionaryPagesCount >> 1) + ((totalSpells + 1) >> 1);
 
             int offs = 0;
-            bool isMageSpellbook = false;
 
             if (_spellBookType == SpellBookType.Magery)
             {
-                isMageSpellbook = true;
-
                 Add(new Button((int)ButtonCircle.Circle_1_2, 0x08B1, 0x08B1)
                 {
                     X = 58, Y = 175, ButtonAction = ButtonAction.Activate, ToPage = 1
@@ -209,7 +206,7 @@ namespace ClassicUO.Game.UI.Gumps
                         X = indexX, Y = 10
                     };
                     Add(text, page);
-                    if (isMageSpellbook)
+                    if (_spellBookType == SpellBookType.Magery)
                     {
                         text = new Label(SpellsMagery.CircleNames[(i - 1) * 2 + j % 2], false, 0x0288, font: 6)
                         {
@@ -249,9 +246,7 @@ namespace ClassicUO.Game.UI.Gumps
             }
 
             int page1 = (dictionaryPagesCount >> 1) + 1;
-            int topTextY = _spellBookType == SpellBookType.Magery ? 10 : 6;
-            bool haveReagents = _spellBookType <= SpellBookType.Necromancy;
-            bool haveAbbreviature = _spellBookType != SpellBookType.Bushido && _spellBookType != SpellBookType.Ninjitsu;
+            int topTextY = 6;
 
             for (int i = 0, spellsDone = 0; i < maxSpellsCount; i++)
             {
@@ -270,7 +265,7 @@ namespace ClassicUO.Game.UI.Gumps
                     if (spellsDone % 2 != 0)
                     {
                         iconX = 225;
-                        topTextX = 244 - 20;
+                        topTextX = 224;
                         iconTextX = 275;
                         iconSerial = 1000 + (uint)i;
                     }
@@ -284,46 +279,73 @@ namespace ClassicUO.Game.UI.Gumps
 
                 GetSpellNames(i, out string name, out string abbreviature, out string reagents);
 
-                if (isMageSpellbook)
+                switch(_spellBookType)
                 {
-                    Label text = new Label(SpellsMagery.CircleNames[i >> 3], false, 0x0288, font: 6)
+                    case SpellBookType.Magery:
                     {
-                        X = topTextX, Y = topTextY
-                    };
-                    Add(text, page1);
-
-                    text = new Label(name, false, 0x0288, 80, 6)
-                    {
-                        X = iconTextX, Y = 34
-                    };
-                    Add(text, page1);
-                    int abbreviatureY = 26;
-
-                    if (text.Height < 24)
-                        abbreviatureY = 31;
-                    abbreviatureY += text.Height;
-
-                    text = new Label(abbreviature, false, 0x0288, font: 8)
-                    {
-                        X = iconTextX, Y = abbreviatureY
-                    };
-                    Add(text, page1);
-                }
-                else
-                {
-                    Label text = new Label(name, false, 0x0288, font: 6)
-                    {
-                        X = topTextX, Y = topTextY
-                    };
-                    Add(text, page1);
-
-                    if (haveAbbreviature)
-                    {
-                        text = new Label(abbreviature, false, 0x0288, 80, 6)
+                        Label text = new Label(SpellsMagery.CircleNames[i >> 3], false, 0x0288, font: 6)
                         {
-                            X = iconTextX, Y = 34
+                            X = topTextX,
+                            Y = topTextY + 4
                         };
                         Add(text, page1);
+
+                        text = new Label(name, false, 0x0288, 80, 6)
+                        {
+                            X = iconTextX,
+                            Y = 34
+                        };
+                        Add(text, page1);
+                        int abbreviatureY = 26;
+
+                        if (text.Height < 24)
+                            abbreviatureY = 31;
+                        abbreviatureY += text.Height;
+
+                        text = new Label(abbreviature, false, 0x0288, font: 8)
+                        {
+                            X = iconTextX,
+                            Y = abbreviatureY
+                        };
+                        Add(text, page1);
+                        break;
+                    }
+                    case SpellBookType.Bardic:
+                    {
+                        Label text = new Label(SpellsBardic.GetUsedSkillName(i), false, 0x0288, font: 6)
+                        {
+                            X = topTextX,
+                            Y = topTextY + 4
+                        };
+                        Add(text, page1);
+
+                        text = new Label(name, false, 0x0288, 80, 6)
+                        {
+                            X = iconTextX,
+                            Y = 34
+                        };
+                        Add(text, page1);
+                        break;
+                    }
+                    default:
+                    {
+                        Label text = new Label(name, false, 0x0288, font: 6)
+                        {
+                            X = topTextX,
+                            Y = topTextY
+                        };
+                        Add(text, page1);
+
+                        if (!string.IsNullOrEmpty(abbreviature))
+                        {
+                            text = new Label(abbreviature, false, 0x0288, 80, 6)
+                            {
+                                X = iconTextX,
+                                Y = 34
+                            };
+                            Add(text, page1);
+                        }
+                        break;
                     }
                 }
 
@@ -356,7 +378,7 @@ namespace ClassicUO.Game.UI.Gumps
 
                 Add(icon, page1);
 
-                if (haveReagents)
+                if (!string.IsNullOrEmpty(reagents))
                 {
                     Add(new GumpPicTiled(iconX, 88, 120, 5, 0x0835), page1);
 
@@ -373,7 +395,7 @@ namespace ClassicUO.Game.UI.Gumps
                     Add(text, page1);
                 }
 
-                if (!isMageSpellbook)
+                if (_spellBookType != SpellBookType.Magery)
                 {
                     GetSpellRequires(i, out int requiriesY, out string requires);
 
@@ -424,72 +446,75 @@ namespace ClassicUO.Game.UI.Gumps
                     def = SpellsMysticism.GetSpell(idx);
                     break;
 
+                case SpellBookType.Bardic:
+                    def = SpellsBardic.GetSpell(idx);
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
             return def;
         }
 
-        private void GetBookInfo(SpellBookType type, out Graphic bookGraphic, out Graphic minimizedGraphic, out Graphic iconStartGraphic, out int maxSpellsCount, out int spellIndexOffset, out int spellsOnPage, out int dictionaryPagesCount)
+        private void GetBookInfo(SpellBookType type, out Graphic bookGraphic, out Graphic minimizedGraphic, out Graphic iconStartGraphic, out int maxSpellsCount, out int spellsOnPage, out int dictionaryPagesCount)
         {
             switch (type)
             {
                 case SpellBookType.Magery:
-                    maxSpellsCount = 64;
+                    maxSpellsCount = SpellsMagery.MaxSpellCount;
                     bookGraphic = 0x08AC;
                     minimizedGraphic = 0x08BA;
                     iconStartGraphic = 0x08C0;
-                    spellIndexOffset = 0;
                     break;
 
                 case SpellBookType.Necromancy:
-                    maxSpellsCount = 17;
+                    maxSpellsCount = SpellsNecromancy.MaxSpellCount;
                     bookGraphic = 0x2B00;
                     minimizedGraphic = 0x2B03;
                     iconStartGraphic = 0x5000;
-                    spellIndexOffset = 64;
                     break;
 
                 case SpellBookType.Chivalry:
-                    maxSpellsCount = 10;
+                    maxSpellsCount = SpellsChivalry.MaxSpellCount;
                     bookGraphic = 0x2B01;
                     minimizedGraphic = 0x2B04;
                     iconStartGraphic = 0x5100;
-                    spellIndexOffset = 81;
                     break;
 
                 case SpellBookType.Bushido:
-                    maxSpellsCount = 6;
+                    maxSpellsCount = SpellsBushido.MaxSpellCount;
                     bookGraphic = 0x2B07;
                     minimizedGraphic = 0x2B09;
                     iconStartGraphic = 0x5400;
-                    spellIndexOffset = 91;
                     break;
 
                 case SpellBookType.Ninjitsu:
-                    maxSpellsCount = 8;
+                    maxSpellsCount = SpellsNinjitsu.MaxSpellCount;
                     bookGraphic = 0x2B06;
                     minimizedGraphic = 0x2B08;
                     iconStartGraphic = 0x5300;
-                    spellIndexOffset = 97;
                     break;
 
                 case SpellBookType.Spellweaving:
-                    maxSpellsCount = 16;
+                    maxSpellsCount = SpellsSpellweaving.MaxSpellCount;
                     bookGraphic = 0x2B2F;
                     minimizedGraphic = 0x2B2D;
                     iconStartGraphic = 0x59D8;
-                    spellIndexOffset = 105;
                     break;
 
                 case SpellBookType.Mysticism:
-                    maxSpellsCount = 16;
+                    maxSpellsCount = SpellsMysticism.MaxSpellCount;
                     bookGraphic = 0x2B32;
-                    minimizedGraphic = 0; // TODO: i dunno
+                    minimizedGraphic = 0x2B30;
                     iconStartGraphic = 0x5DC0;
-                    spellIndexOffset = 121;
                     break;
 
+                case SpellBookType.Bardic:
+                    maxSpellsCount = SpellsBardic.MaxSpellCount;
+                    bookGraphic = 0x8AC;
+                    minimizedGraphic = 0x2B27;
+                    iconStartGraphic = 0x945;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
@@ -508,14 +533,14 @@ namespace ClassicUO.Game.UI.Gumps
                 case SpellBookType.Magery:
                     SpellDefinition def = SpellsMagery.GetSpell(offset + 1);
                     name = def.Name;
-                    abbreviature = SpellsMagery.SpecialReagentsChars[offset][1];
+                    abbreviature = SpellsMagery.SpecialReagentsChars[offset];
                     reagents = def.CreateReagentListString("\n");
                     break;
 
                 case SpellBookType.Necromancy:
                     def = SpellsNecromancy.GetSpell(offset + 1);
                     name = def.Name;
-                    abbreviature = SpellsNecromancy.SpellsSpecialsName[offset][1];
+                    abbreviature = def.PowerWords;
                     reagents = def.CreateReagentListString("\n");
                     break;
 
@@ -552,6 +577,13 @@ namespace ClassicUO.Game.UI.Gumps
                     name = def.Name;
                     abbreviature = def.PowerWords;
                     reagents = def.CreateReagentListString("\n");
+                    break;
+
+                case SpellBookType.Bardic:
+                    def = SpellsBardic.GetSpell(offset + 1);
+                    name = def.Name;
+                    abbreviature = def.PowerWords;
+                    reagents = string.Empty;
                     break;
 
                 default:
@@ -602,6 +634,14 @@ namespace ClassicUO.Game.UI.Gumps
                     manaCost = def.ManaCost;
                     minSkill = def.MinSkill;
                     break;
+
+                case SpellBookType.Bardic:
+                    def = SpellsBardic.GetSpell(offset + 1);
+                    manaCost = def.ManaCost;
+                    minSkill = def.MinSkill;
+                    y = 140;
+                    text = $"Upkeep Cost: {def.TithingCost}\nMana cost: {manaCost}\nMin. Skill: {minSkill}";
+                    return;
             }
 
             text = $"Mana cost: {manaCost}\nMin. Skill: {minSkill}";
@@ -624,70 +664,7 @@ namespace ClassicUO.Game.UI.Gumps
             Engine.SceneManager.CurrentScene.Audio.PlaySound(0x0055);
         }
 
-        private void CreateSpellDetailsPage(int page, bool isright, int circle, in SpellDefinition spell)
-        {
-            if (_spellBookType == SpellBookType.Magery)
-            {
-                Add(new Label(SpellsMagery.CircleNames[circle], false, 0x0288, font: 6)
-                {
-                    X = isright ? 64 + 162 : 85, Y = 10
-                }, page);
-            }
-
-            GumpPic spellImage = new GumpPic(isright ? 225 : 62, 40, (Graphic) (spell.GumpIconID - 0x1298), 0)
-            {
-                LocalSerial = (uint) (Graphic) (spell.GumpIconID - 0x1298), Tag = spell.ID
-            };
-
-            spellImage.DragBegin += (sender, e) =>
-            {
-                Control ctrl = (Control) sender;
-                SpellDefinition def = SpellsMagery.GetSpell((int) ctrl.Tag);
-
-                UseSpellButtonGump gump = new UseSpellButtonGump(def)
-                {
-                    X = Mouse.Position.X - 22, Y = Mouse.Position.Y - 22
-                };
-                Engine.UI.Add(gump);
-                Engine.UI.AttemptDragControl(gump, Mouse.Position, true);
-            };
-            Add(spellImage, page);
-
-            Label spellnameLabel = new Label(spell.Name, false, 0x0288, 80, 6)
-            {
-                X = isright ? 275 : 112, Y = 34
-            };
-            Add(spellnameLabel, page);
-
-            if (spell.Regs.Length > 0)
-            {
-                Add(new GumpPicTiled(isright ? 225 : 62, 88, 120, 4, 0x0835), page);
-
-                Add(new Label("Reagents:", false, 0x0288, font: 6)
-                {
-                    X = isright ? 225 : 62, Y = 92
-                }, page);
-                string reagList = spell.CreateReagentListString(",\n");
-
-                if (_spellBookType == SpellBookType.Magery)
-                {
-                    int y = spellnameLabel.Height < 24 ? 31 : 24;
-                    y += spellnameLabel.Height;
-
-                    Add(new Label(SpellsMagery.SpecialReagentsChars[spell.ID - 1][1], false, 0x0288, font: 8)
-                    {
-                        X = isright ? 275 : 112, Y = y
-                    }, page);
-                }
-
-                Add(new Label(reagList, false, 0x0288, font: 9)
-                {
-                    X = isright ? 225 : 62, Y = 114
-                }, page);
-            }
-        }
-
-        private void OnEntityUpdate(ServerEntity entity)
+        private void OnEntityUpdate(Entity entity)
         {
             if (entity == null) 
                 return;
@@ -721,6 +698,11 @@ namespace ClassicUO.Game.UI.Gumps
 
                 case 0x2D9D:
                     _spellBookType = SpellBookType.Mysticism;
+                    break;
+
+                case 0x225A:
+                case 0x225B:
+                    _spellBookType = SpellBookType.Bardic;
                     break;
             }
 

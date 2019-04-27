@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+
+using ClassicUO.Utility.Logging;
 
 using ClassicUO.Renderer;
 
@@ -14,13 +12,17 @@ namespace ClassicUO.IO.Resources
     {
         private UOFile _file;
         private readonly UOFileMul[] _facets = new UOFileMul[6];
+        internal bool HasFacet(int map)
+        {
+            return map >= 0 && map < _facets.Length && _facets[map] != null;
+        }
 
         public override void Load()
         {
             string path = Path.Combine(FileManager.UoFolderPath, "Multimap.rle");
 
             if (File.Exists(path))
-                _file = new UOFile(path);
+                _file = new UOFile(path, true);
 
             for (int i = 0; i < 6; i++)
             {
@@ -35,8 +37,11 @@ namespace ClassicUO.IO.Resources
 
         public unsafe SpriteTexture LoadMap(int width, int height, int startx, int starty, int endx, int endy)
         {
-            if (_file == null)
+            if (_file == null || _file.Length == 0)
+            {
+                Log.Message(LogTypes.Warning, $"MultiMap.rle is not loaded!");
                 return null;
+            }
 
             _file.Seek(0);
 
@@ -45,54 +50,51 @@ namespace ClassicUO.IO.Resources
 
             if (w < 1 || h < 1)
             {
+                Log.Message(LogTypes.Warning, $"Failed to load bounds from MultiMap.rle");
                 return null;
             }
 
-
             int mapSize = width * height;
-            byte[] data = new byte[mapSize];
 
-            int startX = startx / 2;
-            int endX = endx / 2;
+            startx = startx >> 1;
+            endx = endx >> 1;
 
-            int widthDivisor = endX - startX;
+            int widthDivisor = endx - startx;
 
             if (widthDivisor == 0)
                 widthDivisor++;
 
-            int startY = starty / 2;
-            int endY = endy / 2;
+            starty = starty >> 1;
+            endy = endy >> 1;
 
-            int heightDivisor = endY - startY;
+            int heightDivisor = endy - starty;
 
             if (heightDivisor == 0)
                 heightDivisor++;
 
-
             int pwidth = (width << 8) / widthDivisor;
             int pheight = (height << 8) / heightDivisor;
+
+            byte[] data = new byte[mapSize];
 
             int x = 0, y = 0;
 
             int maxPixelValue = 1;
-
-
+            int startHeight = starty * pheight;
             while (_file.Position < _file.Length)
             {
                 byte pic = _file.ReadByte();
                 byte size = (byte)(pic & 0x7F);
-
                 bool colored = (pic & 0x80) != 0;
 
-                int startHeight = startY * pheight;
                 int currentHeight = y * pheight;
                 int posY = width * ((currentHeight - startHeight) >> 8);
 
                 for (int i = 0; i < size; i++)
                 {
-                    if (colored && x >= startX && x < endX && y >= startY && y < endY)
+                    if (colored && x >= startx && x < endx && y >= starty && y < endy)
                     {
-                        int position = posY + ((width * (x - startX)) >> 8);
+                        int position = posY + ((pwidth * (x - startx)) >> 8);
 
                         ref byte pixel = ref data[position];
 
@@ -111,46 +113,45 @@ namespace ClassicUO.IO.Resources
                     {
                         x = 0;
                         y++;
-                        currentHeight += height;
+                        currentHeight += pheight;
                         posY = width * ((currentHeight - startHeight) >> 8);
                     }
                 }
+            }
+            if (maxPixelValue >= 1)
+            {
+                int s = Marshal.SizeOf<HuesGroup>();
+                IntPtr ptr = Marshal.AllocHGlobal(s * FileManager.Hues.HuesRange.Length);
+                for (int i = 0; i < FileManager.Hues.HuesRange.Length; i++)
+                    Marshal.StructureToPtr(FileManager.Hues.HuesRange[i], ptr + i * s, false);
 
-                if (maxPixelValue >= 1)
+                ushort* huesData = (ushort*)(byte*)(ptr + 30800);
+
+                ushort[] colorTable = new ushort[maxPixelValue];
+
+                int colorOffset = 31 * maxPixelValue;
+
+                for (int i = 0; i < maxPixelValue; i++)
                 {
-                    int s = Marshal.SizeOf<HuesGroup>();
-                    IntPtr ptr = Marshal.AllocHGlobal(s * FileManager.Hues.HuesRange.Length);
-                    for (int i = 0; i < FileManager.Hues.HuesRange.Length; i++)
-                        Marshal.StructureToPtr(FileManager.Hues.HuesRange[i], ptr + i * s, false);
-
-                    ushort* huesData = (ushort*)(byte*)(ptr + 30800);
-
-                    ushort[] colorTable = new ushort[maxPixelValue];
-
-                    int colorOffset = 31 * maxPixelValue;
-
-                    for (int i = 0; i < maxPixelValue; i++)
-                    {
-                        colorOffset -= 31;
-                        colorTable[i] = (ushort) (0x8000 | huesData[colorOffset / maxPixelValue]);
-                    }
-
-                    ushort[] worldMap = new ushort[mapSize];
-
-                    for (int i = 0; i < mapSize; i++)
-                    {
-                        byte bytepic = data[i];
-
-                        worldMap[i] = (ushort) (pic != 0 ? colorTable[pic - 1] : 0);
-                    }
-
-                    Marshal.FreeHGlobal(ptr);
-
-                    SpriteTexture texture = new SpriteTexture(width, height, false);
-                    texture.SetData(worldMap);
-
-                    return texture;
+                    colorOffset -= 31;
+                    colorTable[i] = (ushort)(0x8000 | huesData[colorOffset / maxPixelValue]);
                 }
+
+                ushort[] worldMap = new ushort[mapSize];
+
+                for (int i = 0; i < mapSize; i++)
+                {
+                    byte bytepic = data[i];
+
+                    worldMap[i] = (ushort)(bytepic != 0 ? colorTable[bytepic - 1] : 0);
+                }
+
+                Marshal.FreeHGlobal(ptr);
+
+                SpriteTexture texture = new SpriteTexture(width, height, false);
+                texture.SetData(worldMap);
+
+                return texture;
             }
 
             return null;
