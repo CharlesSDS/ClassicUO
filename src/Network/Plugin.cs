@@ -251,37 +251,9 @@ namespace ClassicUO.Network
             }
             catch (Exception ex)
             {
-                try
-                {
-                    Assembly asm = Assembly.LoadFrom(PluginPath);
+                Log.Error($"Plugin threw an error during Initialization. {ex}");
 
-                    Type type = asm.GetType("Assistant.Engine");
-
-                    if (type == null)
-                    {
-                        Log.Error("Unable to find Plugin Type, API requires the public class Engine in namespace Assistant.");
-
-                        return;
-                    }
-
-                    MethodInfo meth = type.GetMethod("Install", BindingFlags.Public | BindingFlags.Static);
-
-                    if (meth == null)
-                    {
-                        Log.Error("Engine class missing public static Install method Needs 'public static unsafe void Install(PluginHeader *plugin)' ");
-
-                        return;
-                    }
-
-
-                    meth.Invoke(null, new object[] { (IntPtr)func });
-                }
-                catch (Exception err)
-                {
-                    Log.Error($"Plugin threw an error during Initialization. {err.Message} {err.StackTrace} {err.InnerException?.Message} {err.InnerException?.StackTrace}");
-
-                    return;
-                }
+                return;
             }
 
 
